@@ -1,4 +1,4 @@
-# Nuvaryn Privacy Policy / 隱私權政策
+# Amisoria Privacy Policy / 隱私權政策
 
 _Last updated / 最後更新: 2026-08-21_
 
@@ -8,10 +8,10 @@ _Last updated / 最後更新: 2026-08-21_
 
 ## English
 
-Nuvaryn ("the App") is an iOS client for a **self-hosted** OpenClaw gateway. This policy explains what the App does — and, more importantly, what it does not do — with your data.
+Amisoria ("the App") is an iOS client for a **self-hosted** OpenClaw gateway. This policy explains what the App does — and, more importantly, what it does not do — with your data.
 
 ### What we do NOT do
-- Nuvaryn operates **no servers of its own**. There is no Nuvaryn account, no sign-in, no analytics SDK, no advertising SDK, and no crash-reporting service that receives your data.
+- Amisoria operates **no servers of its own**. There is no Amisoria account, no sign-in, no analytics SDK, no advertising SDK, and no crash-reporting service that receives your data.
 - We do **not** collect, store, transmit, or sell your conversations, voice recordings, API keys, contacts, location, or identifiers.
 - We do **not** track you across apps or websites.
 
@@ -41,16 +41,16 @@ We will post any changes to this page. Material changes will also be noted in th
 
 ### Contact
 Questions: **[contact email — to be published]**
-Repository: https://github.com/GlenNuvaryn/nuvaryn
+Repository: https://github.com/GlenNuvaryn/amisoria
 
 ---
 
 ## 繁體中文
 
-Nuvaryn(以下稱「本 App」)是一個連接**自架 OpenClaw gateway** 的 iOS 用戶端。本政策說明本 App 對你的資料做了什麼——更重要的是,沒有做什麼。
+Amisoria(以下稱「本 App」)是一個連接**自架 OpenClaw gateway** 的 iOS 用戶端。本政策說明本 App 對你的資料做了什麼——更重要的是,沒有做什麼。
 
 ### 我們「不」做的事
-- Nuvaryn **沒有自己的伺服器**。沒有帳號、不需登入、沒有分析 SDK、沒有廣告 SDK、沒有任何會接收你資料的錯誤回報服務。
+- Amisoria **沒有自己的伺服器**。沒有帳號、不需登入、沒有分析 SDK、沒有廣告 SDK、沒有任何會接收你資料的錯誤回報服務。
 - 我們**不會**蒐集、儲存、傳送或販售你的對話、語音、API 金鑰、聯絡人、位置或任何識別碼。
 - 我們**不會**跨 App 或網站追蹤你。
 
@@ -80,4 +80,4 @@ Nuvaryn(以下稱「本 App」)是一個連接**自架 OpenClaw gateway** 的 iO
 
 ### 聯絡
 問題請洽:**[聯絡信箱 — 待公布]**
-原始碼與文件:https://github.com/GlenNuvaryn/nuvaryn
+原始碼與文件:https://github.com/GlenNuvaryn/amisoria

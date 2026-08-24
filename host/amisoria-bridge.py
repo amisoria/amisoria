@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-nuvaryn-bridge — companion HTTP service that runs ON the OpenClaw host (Mac mini).
+amisoria-bridge — companion HTTP service that runs ON the OpenClaw host (Mac mini).
 
 The gateway's tts.convert writes an mp3 and returns its PATH; it has no HTTP
 file endpoint. This bridge, running on the same machine, serves that file:
@@ -20,7 +20,7 @@ endpoints are token-gated. Bind to the Tailscale interface or firewall port
 18790 to your tailnet.
 
 Install (launchd, see docs/install-mac-mini.md):
-    ~/.nuvaryn/nuvaryn-bridge.py + com.nuvaryn.bridge.plist
+    ~/.amisoria/amisoria-bridge.py + com.amisoria.bridge.plist
 """
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import subprocess, urllib.parse, urllib.request, json, os, re

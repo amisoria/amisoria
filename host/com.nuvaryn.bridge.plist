@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Reference copy. setup-host.sh writes a personalized version to
-     ~/Library/LaunchAgents/com.nuvaryn.bridge.plist (with your paths). -->
+     ~/Library/LaunchAgents/com.amisoria.bridge.plist (with your paths). -->
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-  <key>Label</key><string>com.nuvaryn.bridge</string>
+  <key>Label</key><string>com.amisoria.bridge</string>
   <key>ProgramArguments</key>
-  <array><string>/usr/bin/python3</string><string>/Users/YOU/.nuvaryn/nuvaryn-bridge.py</string></array>
+  <array><string>/usr/bin/python3</string><string>/Users/YOU/.amisoria/amisoria-bridge.py</string></array>
   <key>RunAtLoad</key><true/>
   <key>KeepAlive</key><true/>
-  <key>StandardOutPath</key><string>/tmp/nuvaryn-bridge.log</string>
-  <key>StandardErrorPath</key><string>/tmp/nuvaryn-bridge.log</string>
+  <key>StandardOutPath</key><string>/tmp/amisoria-bridge.log</string>
+  <key>StandardErrorPath</key><string>/tmp/amisoria-bridge.log</string>
 </dict>
 </plist>

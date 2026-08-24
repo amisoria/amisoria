@@ -1,21 +1,21 @@
 #!/bin/bash
 # =============================================================================
-#  Nuvaryn host setup — run ON the Mac (mini) that hosts OpenClaw.
+#  Amisoria host setup — run ON the Mac (mini) that hosts OpenClaw.
 #
 #  What it does (idempotent; safe to re-run):
 #    1. Checks prerequisites: openclaw, Tailscale.app, python3.
-#    2. Configures OpenClaw for the Nuvaryn iPhone app:
+#    2. Configures OpenClaw for the Amisoria iPhone app:
 #         - gateway.bind = loopback, gateway.tailscale.mode = serve
 #         - gateway.controlUi.allowedOrigins += https://<your-magicdns>
 #         - enables provider plugins: openai, anthropic, google, openrouter, ollama, microsoft
 #         - compaction.reserveTokensFloor = 6000 (keeps small local models usable)
 #         - tts.auto = off (the app runs its own voice pipeline)
-#    3. Installs the Nuvaryn bridge as a launchd service (com.nuvaryn.bridge).
+#    3. Installs the Amisoria bridge as a launchd service (com.amisoria.bridge).
 #    4. Exposes gateway + bridge through Tailscale Serve (HTTPS, tailnet-only).
 #    5. Restarts the gateway and prints what to type into the iPhone app.
 #
 #  Usage:  bash setup-host.sh
-#  Docs:   https://github.com/GlenNuvaryn/nuvaryn
+#  Docs:   https://github.com/GlenNuvaryn/amisoria
 # =============================================================================
 set -euo pipefail
 
@@ -54,7 +54,7 @@ ok "Tailnet HTTPS enabled ($CERTS)"
 
 # ------------------------------------------------------------- openclaw config
 say "Configuring OpenClaw ($OC_CFG)"
-cp "$OC_CFG" "$OC_CFG.before-nuvaryn-$(date +%Y%m%d-%H%M%S)"
+cp "$OC_CFG" "$OC_CFG.before-amisoria-$(date +%Y%m%d-%H%M%S)"
 MAGIC="$MAGIC" python3 - "$OC_CFG" <<'PY'
 import json, os, sys
 p = sys.argv[1]; magic = os.environ["MAGIC"]
@@ -88,41 +88,41 @@ PY
 TOKEN="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["gateway"]["auth"].get("token",""))' "$OC_CFG")"
 
 # ---------------------------------------------------------------------- bridge
-say "Installing the Nuvaryn bridge (launchd: com.nuvaryn.bridge)"
-mkdir -p "$HOME/.nuvaryn"
-cp "$HERE/nuvaryn-bridge.py" "$HOME/.nuvaryn/nuvaryn-bridge.py"
+say "Installing the Amisoria bridge (launchd: com.amisoria.bridge)"
+mkdir -p "$HOME/.amisoria"
+cp "$HERE/amisoria-bridge.py" "$HOME/.amisoria/amisoria-bridge.py"
 # bridge admin endpoints are gated by the gateway token
 printf "%s" "$TOKEN" > "$HOME/.bridge-secret"; chmod 600 "$HOME/.bridge-secret"
 [ -f "$HOME/.bridge-keys.json" ] || { echo '{}' > "$HOME/.bridge-keys.json"; chmod 600 "$HOME/.bridge-keys.json"; }
 # the bridge shells out to openclaw — record where it lives
 OC_BIN_DIR="$(dirname "$OPENCLAW")"
-sed -i '' "s#^OPENCLAW_BIN = .*#OPENCLAW_BIN = \"$OPENCLAW\"#" "$HOME/.nuvaryn/nuvaryn-bridge.py" 2>/dev/null || true
-PLIST="$HOME/Library/LaunchAgents/com.nuvaryn.bridge.plist"
+sed -i '' "s#^OPENCLAW_BIN = .*#OPENCLAW_BIN = \"$OPENCLAW\"#" "$HOME/.amisoria/amisoria-bridge.py" 2>/dev/null || true
+PLIST="$HOME/Library/LaunchAgents/com.amisoria.bridge.plist"
 mkdir -p "$HOME/Library/LaunchAgents"
 cat > "$PLIST" <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-  <key>Label</key><string>com.nuvaryn.bridge</string>
+  <key>Label</key><string>com.amisoria.bridge</string>
   <key>ProgramArguments</key>
-  <array><string>/usr/bin/python3</string><string>$HOME/.nuvaryn/nuvaryn-bridge.py</string></array>
+  <array><string>/usr/bin/python3</string><string>$HOME/.amisoria/amisoria-bridge.py</string></array>
   <key>EnvironmentVariables</key>
   <dict><key>PATH</key><string>$OC_BIN_DIR:/usr/bin:/bin:/usr/local/bin</string></dict>
   <key>RunAtLoad</key><true/>
   <key>KeepAlive</key><true/>
-  <key>StandardOutPath</key><string>/tmp/nuvaryn-bridge.log</string>
-  <key>StandardErrorPath</key><string>/tmp/nuvaryn-bridge.log</string>
+  <key>StandardOutPath</key><string>/tmp/amisoria-bridge.log</string>
+  <key>StandardErrorPath</key><string>/tmp/amisoria-bridge.log</string>
 </dict>
 </plist>
 EOF
-launchctl bootout "gui/$(id -u)/com.nuvaryn.bridge" 2>/dev/null || true
+launchctl bootout "gui/$(id -u)/com.amisoria.bridge" 2>/dev/null || true
 launchctl bootstrap "gui/$(id -u)" "$PLIST"
 sleep 2
 if curl -s -m 5 -o /dev/null -w "%{http_code}" "http://127.0.0.1:18790/tts?path=/private/tmp/openclaw/x.mp3" | grep -q "404"; then
   ok "bridge is serving on 127.0.0.1:18790"
 else
-  warn "bridge did not answer yet — check /tmp/nuvaryn-bridge.log"
+  warn "bridge did not answer yet — check /tmp/amisoria-bridge.log"
 fi
 
 # ------------------------------------------------------------- tailscale serve
@@ -144,7 +144,7 @@ else
 fi
 
 # -------------------------------------------------------------------- summary
-say "Done. Enter this in the Nuvaryn iPhone app → Settings:"
+say "Done. Enter this in the Amisoria iPhone app → Settings:"
 echo "    Host : $MAGIC"
 echo "    Port : 443"
 echo "    TLS  : ON"

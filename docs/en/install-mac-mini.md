@@ -1,12 +1,12 @@
-# Nuvaryn Setup Guide — Mac mini host + iPhone
+# Amisoria Setup Guide — Mac mini host + iPhone
 
 This guide uses an **always-on Mac mini (Apple Silicon)** as Iris's brain (the OpenClaw gateway) and an
 **iPhone** as her face and voice. Budget about 30 minutes. No public IP, no port-forwarding, no web server:
 the iPhone reaches your Mac mini over a private, encrypted **Tailscale** network.
 
-> In one line: `iPhone (Nuvaryn app) ──Tailscale HTTPS──▶ Mac mini (OpenClaw + Nuvaryn bridge) ──▶ AI providers`
+> In one line: `iPhone (Amisoria app) ──Tailscale HTTPS──▶ Mac mini (OpenClaw + Amisoria bridge) ──▶ AI providers`
 >
-> Your conversations travel only between your phone and your Mac mini. Nuvaryn runs no servers of its own.
+> Your conversations travel only between your phone and your Mac mini. Amisoria runs no servers of its own.
 
 ---
 
@@ -58,28 +58,28 @@ the iPhone reaches your Mac mini over a private, encrypted **Tailscale** network
 
 ---
 
-## 3. Run the Nuvaryn host setup script
+## 3. Run the Amisoria host setup script
 
 One script applies every setting we learned the hard way (safe to re-run):
 
 ```bash
-git clone https://github.com/GlenNuvaryn/nuvaryn.git
-cd nuvaryn/host
+git clone https://github.com/GlenNuvaryn/amisoria.git
+cd amisoria/host
 bash setup-host.sh
 ```
 
 It will:
 - bind OpenClaw to loopback and publish it through Tailscale Serve; add your MagicDNS name to the allowed origins (without this you get `origin not allowed`);
 - enable the openai / anthropic / google / openrouter / ollama / microsoft plugins;
-- install the **Nuvaryn bridge** (voice audio, key updates, balance) as a launchd service;
+- install the **Amisoria bridge** (voice audio, key updates, balance) as a launchd service;
 - configure Tailscale Serve for gateway + bridge over HTTPS;
 - **print the Host / Port / Token to type into the iPhone.**
 
 ---
 
-## 4. Set up the Nuvaryn app on the iPhone
+## 4. Set up the Amisoria app on the iPhone
 
-1. Install **Nuvaryn** from the App Store and go through the first-run guide (try **Demo mode** first if you like).
+1. Install **Amisoria** from the App Store and go through the first-run guide (try **Demo mode** first if you like).
 2. Tap ⚙️ → **Gateway**:
    - Host: the MagicDNS name the script printed (e.g. `mac-mini.tail1234.ts.net`)
    - Port: `443`
@@ -122,7 +122,7 @@ Then add the model to OpenClaw's roster (`~/.openclaw/openclaw.json` → `agents
 | `origin not allowed` | `gateway.controlUi.allowedOrigins` lacks `https://<MagicDNS>`. Re-run `setup-host.sh` or add it and restart the gateway. |
 | `control ui requires device identity` | Old app build or a non-TLS connection. Use port 443 with TLS on. |
 | `pairing required` keeps appearing | Not approved yet, or the gateway restarted before approval. `openclaw devices list` → approve the new id. |
-| Connected but **no voice**, every reply female | Server voice unreachable → app fell back to iPhone's built-in voice. Check the bridge: `curl -s -o /dev/null -w "%{http_code}" https://<MagicDNS>/bridge/tts?path=x` should print `404` (alive); `000` means it's down → `launchctl kickstart -k gui/$(id -u)/com.nuvaryn.bridge`. |
+| Connected but **no voice**, every reply female | Server voice unreachable → app fell back to iPhone's built-in voice. Check the bridge: `curl -s -o /dev/null -w "%{http_code}" https://<MagicDNS>/bridge/tts?path=x` should print `404` (alive); `000` means it's down → `launchctl kickstart -k gui/$(id -u)/com.amisoria.bridge`. |
 | Model returns `402` / `429` | 402 = OpenRouter has no credits; 429 = free quota exhausted or the key lacks that model (Google's free tier has Flash only, no Pro). |
 | Local model: `Auto-compaction could not recover` | `agents.defaults.compaction.reserveTokensFloor` too large (fatal for 33k-context models). The script sets 6000. You can also tap ✏️ New conversation in the app. |
 | Replies show "Audio reply" | Server-side auto-TTS is on. The script sets `tts.auto` to off. |

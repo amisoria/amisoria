@@ -1,12 +1,12 @@
-# Nuvaryn 安裝手冊 — Mac mini 主機 + iPhone
+# Amisoria 安裝手冊 — Mac mini 主機 + iPhone
 
 本手冊以 **一台全天候開機的 Mac mini(Apple Silicon)** 作為 Iris 的大腦(OpenClaw gateway),
 **iPhone** 作為互動介面。整套流程約 30 分鐘。不需要公網 IP、不需要開防火牆埠、不需要架網站:
 iPhone 透過 **Tailscale** 私人加密網路找到你的 Mac mini。
 
-> 架構一句話:`iPhone (Nuvaryn app) ──Tailscale HTTPS──▶ Mac mini (OpenClaw + Nuvaryn bridge) ──▶ 各家 AI 模型`
+> 架構一句話:`iPhone (Amisoria app) ──Tailscale HTTPS──▶ Mac mini (OpenClaw + Amisoria bridge) ──▶ 各家 AI 模型`
 >
-> 你的對話只在你的手機與你的 Mac mini 之間流動,不經過 Nuvaryn 的任何伺服器。
+> 你的對話只在你的手機與你的 Mac mini 之間流動,不經過 Amisoria 的任何伺服器。
 
 ---
 
@@ -58,28 +58,28 @@ iPhone 透過 **Tailscale** 私人加密網路找到你的 Mac mini。
 
 ---
 
-## 3. 執行 Nuvaryn 主機設定腳本
+## 3. 執行 Amisoria 主機設定腳本
 
 這個腳本把所有「踩過坑」的設定一次做完(可重複執行):
 
 ```bash
-git clone https://github.com/GlenNuvaryn/nuvaryn.git
-cd nuvaryn/host
+git clone https://github.com/GlenNuvaryn/amisoria.git
+cd amisoria/host
 bash setup-host.sh
 ```
 
 它會:
 - 把 OpenClaw 設為只聽本機、透過 Tailscale Serve 對外;把你的 MagicDNS 名稱加進允許的來源(沒做這步會出現 `origin not allowed`);
 - 啟用 openai / anthropic / google / openrouter / ollama / microsoft 外掛;
-- 安裝 **Nuvaryn bridge**(提供語音音檔、金鑰更換、餘額查詢)為常駐服務;
+- 安裝 **Amisoria bridge**(提供語音音檔、金鑰更換、餘額查詢)為常駐服務;
 - 設定 Tailscale Serve 把 gateway 與 bridge 掛在 HTTPS 下;
 - 最後**印出你要填進 iPhone 的 Host / Port / Token**。
 
 ---
 
-## 4. 在 iPhone 設定 Nuvaryn app
+## 4. 在 iPhone 設定 Amisoria app
 
-1. 從 App Store 安裝 **Nuvaryn**,走完首次導引(可先按「試試示範模式」認識 Iris)。
+1. 從 App Store 安裝 **Amisoria**,走完首次導引(可先按「試試示範模式」認識 Iris)。
 2. 右上角 ⚙️ 設定 → **Gateway**:
    - Host:腳本印出的 MagicDNS 名稱(例如 `mac-mini.tail1234.ts.net`)
    - Port:`443`
@@ -121,7 +121,7 @@ app 的模型選單會出現「Local Qwen」。
 | `origin not allowed` | `gateway.controlUi.allowedOrigins` 缺 `https://<MagicDNS>`。重新執行 `setup-host.sh`,或手動加入後重啟 gateway。 |
 | `control ui requires device identity` | 你用的是舊版 app 或非 TLS 連線。請用 Port 443 + TLS 開。 |
 | `pairing required` 一直出現 | 還沒核准,或核准前 gateway 重啟了。`openclaw devices list` 取得新 ID 再 approve。 |
-| 連上了但**沒聲音**,且每句都變成女聲 | 伺服器語音取不到 → app 退回 iPhone 內建語音。檢查 bridge:`curl -s -o /dev/null -w "%{http_code}" https://<MagicDNS>/bridge/tts?path=x` 應回 `404`(服務活著);`000` 代表 bridge 掛了 → `launchctl kickstart -k gui/$(id -u)/com.nuvaryn.bridge`。 |
+| 連上了但**沒聲音**,且每句都變成女聲 | 伺服器語音取不到 → app 退回 iPhone 內建語音。檢查 bridge:`curl -s -o /dev/null -w "%{http_code}" https://<MagicDNS>/bridge/tts?path=x` 應回 `404`(服務活著);`000` 代表 bridge 掛了 → `launchctl kickstart -k gui/$(id -u)/com.amisoria.bridge`。 |
 | 模型回 `402` / `429` | 402 = OpenRouter 未儲值;429 = 免費配額用盡或該 key 無此模型權限(Google 免費層只有 Flash,沒有 Pro)。 |
 | 本地模型 `Auto-compaction could not recover` | `agents.defaults.compaction.reserveTokensFloor` 太大(對 33k 視窗模型致命)。腳本已設 6000。也可在 app 按 ✏️ 開新對話。 |
 | 回覆變成「Audio reply」 | 伺服器端自動 TTS 開著。腳本已把 `tts.auto` 設為 off。 |

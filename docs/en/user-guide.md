@@ -1,6 +1,6 @@
-# Nuvaryn User Guide
+# Amisoria User Guide
 
-Nuvaryn is an **AI companion with a voice, a face, and your language**.
+Amisoria is an **AI companion with a voice, a face, and your language**.
 The default character is **Iris**; her brain runs on your own Mac mini (see the [Setup Guide](install-mac-mini.md)),
 the phone is her face and voice.
 
@@ -104,5 +104,5 @@ Keys live only in the iPhone Keychain and on your Mac mini. Nothing is uploaded 
 ## Privacy
 
 - Conversations flow only between your iPhone, your Mac mini, and the AI providers you chose.
-- Nuvaryn operates **no** servers that collect your conversations, keys, or usage.
+- Amisoria operates **no** servers that collect your conversations, keys, or usage.
 - See the [Privacy Policy](../../PRIVACY.md).
