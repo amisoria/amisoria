@@ -15,7 +15,7 @@
 #    5. Restarts the gateway and prints what to type into the iPhone app.
 #
 #  Usage:  bash setup-host.sh
-#  Docs:   https://github.com/GlenNuvaryn/amisoria
+#  Docs:   https://github.com/amisoria/amisoria
 # =============================================================================
 set -euo pipefail
 

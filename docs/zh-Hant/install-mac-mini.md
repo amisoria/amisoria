@@ -63,7 +63,7 @@ iPhone 透過 **Tailscale** 私人加密網路找到你的 Mac mini。
 這個腳本把所有「踩過坑」的設定一次做完(可重複執行):
 
 ```bash
-git clone https://github.com/GlenNuvaryn/amisoria.git
+git clone https://github.com/amisoria/amisoria.git
 cd amisoria/host
 bash setup-host.sh
 ```

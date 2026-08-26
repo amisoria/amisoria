@@ -41,7 +41,7 @@ We will post any changes to this page. Material changes will also be noted in th
 
 ### Contact
 Questions: **[contact email — to be published]**
-Repository: https://github.com/GlenNuvaryn/amisoria
+Repository: https://github.com/amisoria/amisoria
 
 ---
 
@@ -80,4 +80,4 @@ Amisoria(以下稱「本 App」)是一個連接**自架 OpenClaw gateway** 的 i
 
 ### 聯絡
 問題請洽:**[聯絡信箱 — 待公布]**
-原始碼與文件:https://github.com/GlenNuvaryn/amisoria
+原始碼與文件:https://github.com/amisoria/amisoria

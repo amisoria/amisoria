@@ -63,7 +63,7 @@ the iPhone reaches your Mac mini over a private, encrypted **Tailscale** network
 One script applies every setting we learned the hard way (safe to re-run):
 
 ```bash
-git clone https://github.com/GlenNuvaryn/amisoria.git
+git clone https://github.com/amisoria/amisoria.git
 cd amisoria/host
 bash setup-host.sh
 ```
