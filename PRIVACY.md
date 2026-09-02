@@ -40,7 +40,7 @@ The App is not directed at children under 13 and does not knowingly collect any 
 We will post any changes to this page. Material changes will also be noted in the App's release notes.
 
 ### Contact
-Questions: **[contact email — to be published]**
+Questions: **support@amisoria.com**
 Repository: https://github.com/amisoria/amisoria
 
 ---
@@ -79,5 +79,5 @@ Amisoria(以下稱「本 App」)是一個連接**自架 OpenClaw gateway** 的 i
 本政策如有修改將公布於本頁;重大變更亦會於 App 更新說明中註明。
 
 ### 聯絡
-問題請洽:**[聯絡信箱 — 待公布]**
+問題請洽:**support@amisoria.com**
 原始碼與文件:https://github.com/amisoria/amisoria
