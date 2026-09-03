@@ -21,6 +21,7 @@ own always-on Mac (a Mac mini is ideal); your phone reaches it over a private Ta
 | 📲 **App** | Amisoria on the App Store (coming soon) |
 | 🛠️ **Set up your Mac mini** | [English](docs/en/install-mac-mini.md) · [繁體中文](docs/zh-Hant/install-mac-mini.md) |
 | 📖 **User guide** | [English](docs/en/user-guide.md) · [繁體中文](docs/zh-Hant/user-guide.md) |
+| 🎭 **Persona & prompt guide** (pitfalls) | [English](docs/en/persona-prompt.md) · [繁體中文](docs/zh-Hant/persona-prompt.md) |
 | 🔒 **Privacy policy** | [PRIVACY.md](PRIVACY.md) |
 | 🧩 **Host tooling** | [`host/setup-host.sh`](host/setup-host.sh) (one-shot configurator) · [`host/amisoria-bridge.py`](host/amisoria-bridge.py) |
 | 🎭 **Characters** | [`assets/characters/`](assets/characters/) — Blender sources + mobile GLBs, **CC BY-NC 4.0** (commercial use needs permission, see [assets/LICENSE](assets/LICENSE)) |

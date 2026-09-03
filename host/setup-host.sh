@@ -133,6 +133,22 @@ sleep 6
 sleep 6
 "$TS" serve status 2>/dev/null | sed 's/^/  /' || warn "could not read serve status"
 
+# ---------------------------------------------------------------- persona rules
+say "Adding Amisoria voice/avatar rules to the agent persona (AGENTS.md)"
+WS="$HOME/.openclaw/workspace"; mkdir -p "$WS"
+RULES="$HERE/workspace/AMISORIA-RULES.md"
+if [ -f "$RULES" ]; then
+  if grep -q "AMISORIA-RULES:BEGIN" "$WS/AGENTS.md" 2>/dev/null; then
+    ok "persona rules already present — skipped"
+  else
+    [ -f "$WS/AGENTS.md" ] && cp "$WS/AGENTS.md" "$WS/AGENTS.md.before-amisoria-$(date +%Y%m%d-%H%M%S)"
+    { echo; cat "$RULES"; } >> "$WS/AGENTS.md"
+    ok "rules appended to $WS/AGENTS.md (see docs/*/persona-prompt.md)"
+  fi
+else
+  warn "workspace/AMISORIA-RULES.md not found next to this script — skipped"
+fi
+
 # ---------------------------------------------------------------- restart gw
 say "Restarting the OpenClaw gateway"
 if launchctl print "gui/$(id -u)/ai.openclaw.gateway" >/dev/null 2>&1; then
