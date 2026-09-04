@@ -15,18 +15,24 @@ Admin endpoints (X-Auth header must equal the gateway token, kept in
          the gateway (launchd respawns it).
     GET  /balance  -> {"openrouter": <remaining USD>}
 
-Security: /tts only serves paths under /private/tmp/openclaw/ (no ".."); admin
+Security: /tts only serves paths under /private/tmp/openclaw/ or ~/.openclaw/media/ (no ".."); admin
 endpoints are token-gated. Bind to the Tailscale interface or firewall port
 18790 to your tailnet.
 
 Install (launchd, see docs/install-mac-mini.md):
     ~/.amisoria/amisoria-bridge.py + com.amisoria.bridge.plist
 """
+import os
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import subprocess, urllib.parse, urllib.request, json, os, re
 
 # LOCAL edition: runs ON the gateway host (Mac mini). No SSH hop.
-ALLOWED_PREFIX = "/private/tmp/openclaw/"
+# OpenClaw < 2026.9 wrote TTS files under /private/tmp/openclaw/; 2026.9.1+ writes
+# them under ~/.openclaw/media/tool-speech-synthesis/. Serve both, nothing else.
+ALLOWED_PREFIXES = (
+    "/private/tmp/openclaw/",
+    os.path.expanduser("~/.openclaw/media/"),
+)
 PORT = 18790
 # Admin endpoints (/model-auth, /balance) require X-Auth == the gateway token
 # (a copy lives in ~/.bridge-secret on Mac A). /tts stays open as before.
@@ -109,7 +115,7 @@ class Handler(BaseHTTPRequestHandler):
             self.send_error(404)
             return
         path = (urllib.parse.parse_qs(url.query).get("path") or [""])[0]
-        if not path.startswith(ALLOWED_PREFIX) or ".." in path:
+        if not path.startswith(ALLOWED_PREFIXES) or ".." in path:
             self.send_error(403)
             return
         try:
