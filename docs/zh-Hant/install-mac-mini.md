@@ -128,3 +128,13 @@ app 的模型選單會出現「Local Qwen」。
 | Mac mini 重開機後 app 連不上 | gateway 與 bridge 都是 launchd 服務會自動起來;Tailscale Serve 設定也會保留。若仍不行,重跑 `setup-host.sh`。 |
 
 完成!接著請看 [使用說明](user-guide.md)。
+
+## 升級 OpenClaw 時的注意事項
+
+`npm i -g openclaw@latest` 之後，請務必檢查以下幾點（我們在 2026.7 → 2026.9.1 升級時全部踩到）：
+
+1. **Gateway 起不來、exit code 78（EX_CONFIG）**：2026.9.1 起 OpenClaw 會「驗證」Tailscale 443 路由的所有權，看到我們手動設定的 `tailscale serve`（根路徑 + `/bridge`）就拒絕啟動。解法：`openclaw.json` 裡把 `gateway.tailscale.mode` 設為 `"off"`（`setup-host.sh` 已改為此設定），**不要**照錯誤訊息把根路徑移除——那會拆掉 App 需要的路由。
+2. **設定遷移可能丟掉 `agents.defaults.compaction.reserveTokensFloor`**：重新確認為 `6000`，否則 33k 上下文的本地模型會壞掉。
+3. **確認 `plugins.entries`** 仍有 `microsoft`（伺服器語音）與你用的模型供應商。
+4. 真正的錯誤訊息在 `~/Library/Logs/openclaw/gateway.log`（stderr 預設丟到 /dev/null）；查看方式：`launchctl bootout gui/$(id -u)/ai.openclaw.gateway` 後前景執行 `openclaw gateway` 幾秒。
+5. Amisoria App 需 **1.1 以上**才能連 OpenClaw 2026.9.1（新版要求 `client.buildId`）。
