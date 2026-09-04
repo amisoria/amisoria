@@ -138,3 +138,4 @@ app 的模型選單會出現「Local Qwen」。
 3. **確認 `plugins.entries`** 仍有 `microsoft`（伺服器語音）與你用的模型供應商。
 4. 真正的錯誤訊息在 `~/Library/Logs/openclaw/gateway.log`（stderr 預設丟到 /dev/null）；查看方式：`launchctl bootout gui/$(id -u)/ai.openclaw.gateway` 後前景執行 `openclaw gateway` 幾秒。
 5. Amisoria App 需 **1.1 以上**才能連 OpenClaw 2026.9.1（新版要求 `client.buildId`）。
+6. **App 連線被 403 拒絕、訊息 `proxy_attribution_required`**：新版要求宣告信任的代理。`gateway.trustedProxies` 設為 `["127.0.0.1", "::1"]`（Tailscale Serve 由 loopback 轉發；`setup-host.sh` 已包含）。
