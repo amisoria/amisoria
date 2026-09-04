@@ -140,3 +140,4 @@ After `npm i -g openclaw@latest`, verify the following (we hit every one of thes
 4. The real error goes to `~/Library/Logs/openclaw/gateway.log` (stderr is /dev/null by default); to see it: `launchctl bootout gui/$(id -u)/ai.openclaw.gateway`, then run `openclaw gateway` in the foreground for a few seconds.
 5. The Amisoria app needs **1.1 or later** to connect to OpenClaw 2026.9.1 (it now requires `client.buildId`).
 6. **App connections rejected with 403 `proxy_attribution_required`**: the new version requires declaring trusted proxies. Set `gateway.trustedProxies` to `["127.0.0.1", "::1"]` (Tailscale Serve forwards from loopback; `setup-host.sh` now does this).
+7. **Server voice silently falls back to the device voice, lips stop moving**: since 2026.9.1 TTS files are written to `~/.openclaw/media/tool-speech-synthesis/`; an older bridge only allows `/private/tmp/openclaw/` and answers 403. Update the bridge (re-run `setup-host.sh`).
