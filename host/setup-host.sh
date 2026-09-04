@@ -5,7 +5,7 @@
 #  What it does (idempotent; safe to re-run):
 #    1. Checks prerequisites: openclaw, Tailscale.app, python3.
 #    2. Configures OpenClaw for the Amisoria iPhone app:
-#         - gateway.bind = loopback, gateway.tailscale.mode = serve
+#         - gateway.bind = loopback, gateway.tailscale.mode = off (we run tailscale serve ourselves)
 #         - gateway.controlUi.allowedOrigins += https://<your-magicdns>
 #         - enables provider plugins: openai, anthropic, google, openrouter, ollama, microsoft
 #         - compaction.reserveTokensFloor = 6000 (keeps small local models usable)
@@ -61,7 +61,9 @@ p = sys.argv[1]; magic = os.environ["MAGIC"]
 c = json.load(open(p))
 gw = c.setdefault("gateway", {})
 gw["bind"] = "loopback"
-gw.setdefault("tailscale", {})["mode"] = "serve"
+# OpenClaw >= 2026.9.1 verifies ownership of the Tailscale 443 route and refuses
+# to start when it finds our hand-managed serve config -> keep its managed ingress OFF.
+gw["tailscale"] = {"mode": "off"}
 cu = gw.setdefault("controlUi", {})
 origins = set(cu.get("allowedOrigins") or [])
 origins |= {"http://localhost:18789", "http://127.0.0.1:18789", f"https://{magic}"}
