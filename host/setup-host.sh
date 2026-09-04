@@ -64,6 +64,9 @@ gw["bind"] = "loopback"
 # OpenClaw >= 2026.9.1 verifies ownership of the Tailscale 443 route and refuses
 # to start when it finds our hand-managed serve config -> keep its managed ingress OFF.
 gw["tailscale"] = {"mode": "off"}
+# Tailscale Serve proxies from loopback; >= 2026.9.1 returns 403 "proxy_attribution_required"
+# unless the proxy is declared trusted.
+gw["trustedProxies"] = ["127.0.0.1", "::1"]
 cu = gw.setdefault("controlUi", {})
 origins = set(cu.get("allowedOrigins") or [])
 origins |= {"http://localhost:18789", "http://127.0.0.1:18789", f"https://{magic}"}
