@@ -129,6 +129,20 @@ app 的模型選單會出現「Local Qwen」。
 
 完成!接著請看 [使用說明](user-guide.md)。
 
+## 讓主機保持清醒（必要）
+
+Mac 一旦進入**系統睡眠**，Tailscale 與 Gateway 就不再回應——iPhone 送出的訊息會卡住，直到主機醒來。Tailscale 的流量叫不醒睡著的 Mac，所以主機必須設定為永不睡眠（顯示器可以關，只有系統睡眠會斷線）。
+
+**Mac mini（建議做法，寫入電源設定、重開機仍有效）**：
+```bash
+sudo pmset -c sleep 0 disksleep 0
+```
+或到「系統設定 → 能源」開啟「**顯示器關閉時防止自動進入睡眠**」。顯示器睡眠（`displaysleep`）不用改，沒接螢幕也沒關係。
+
+**用 MacBook 暫代主機時**：除了上面的設定，**蓋子必須開著**（闔蓋會強制睡眠，任何設定都擋不住）；臨時測試可用 `caffeinate -is`（`-d`/`-u` 不需要，顯示器可以睡），但終端機關掉就失效。
+
+驗證：`pmset -g | grep -E " sleep|disksleep"` 應顯示 `sleep 0`。
+
 ## 升級 OpenClaw 時的注意事項
 
 `npm i -g openclaw@latest` 之後，請務必檢查以下幾點（我們在 2026.7 → 2026.9.1 升級時全部踩到）：

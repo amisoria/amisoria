@@ -130,6 +130,20 @@ Then add the model to OpenClaw's roster (`~/.openclaw/openclaw.json` → `agents
 
 Done — next, read the [User Guide](user-guide.md).
 
+## Keep the host awake (required)
+
+Once the Mac enters **system sleep**, Tailscale and the gateway stop responding — messages from the iPhone hang until the host wakes. Tailscale traffic does not wake a sleeping Mac, so the host must never sleep (the display may turn off; only system sleep breaks the connection).
+
+**Mac mini (recommended — persisted in power settings, survives reboots)**:
+```bash
+sudo pmset -c sleep 0 disksleep 0
+```
+or System Settings → Energy → enable **"Prevent automatic sleeping when the display is off"**. Leave display sleep alone; a headless mini is fine.
+
+**If a MacBook is standing in as the host**: apply the same setting and **keep the lid open** (closing it forces sleep regardless of settings). For a quick test `caffeinate -is` works (`-d`/`-u` are unnecessary — the display may sleep) but it dies with the terminal window.
+
+Verify: `pmset -g | grep -E " sleep|disksleep"` should show `sleep 0`.
+
 ## Upgrading OpenClaw — things to check
 
 After `npm i -g openclaw@latest`, verify the following (we hit every one of these going 2026.7 → 2026.9.1):
