@@ -165,6 +165,12 @@ else
 fi
 
 # -------------------------------------------------------------------- summary
+if pmset -g 2>/dev/null | grep -qE "^ sleep +0"; then
+  ok "system sleep is disabled (host stays reachable)"
+else
+  warn "This Mac will go to SLEEP when idle and the app will stop getting replies."
+  warn "Run once:  sudo pmset -c sleep 0 disksleep 0   (see docs: Keep the host awake)"
+fi
 say "Done. Enter this in the Amisoria iPhone app → Settings:"
 echo "    Host : $MAGIC"
 echo "    Port : 443"
