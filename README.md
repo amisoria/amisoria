@@ -10,6 +10,12 @@
   <img src="assets/characters/thumb-lucas-us.png" width="120" alt="Lucas (US)">
 </p>
 
+<p align="center">
+  <a href="https://apps.apple.com/app/amisoria/id6805385809">
+    <img src="https://tools.applemediaservices.com/api/badges/download-on-the-app-store/black/en-us?size=250x83" height="54" alt="Download on the App Store">
+  </a>
+</p>
+
 Amisoria is an iPhone app that gives an [OpenClaw](https://openclaw.ai) agent a real-time 3D presence:
 neural voice, lip-sync, expressions, 20 languages, four characters, and your choice of AI model
 (GPT, Claude, Gemini, DeepSeek, Grok, Qwen, or a local Ollama model). Your gateway lives on your
@@ -18,7 +24,7 @@ own always-on Mac (a Mac mini is ideal); your phone reaches it over a private Ta
 
 | | |
 |---|---|
-| 📲 **App** | Amisoria on the App Store (coming soon) |
+| 📲 **App** | [**Amisoria on the App Store**](https://apps.apple.com/app/amisoria/id6805385809) — free, iPhone (iOS 26.5 or later). Not offered in the EU or mainland China storefronts. |
 | 🛠️ **Set up your Mac mini** | [English](docs/en/install-mac-mini.md) · [繁體中文](docs/zh-Hant/install-mac-mini.md) |
 | 📖 **User guide** | [English](docs/en/user-guide.md) · [繁體中文](docs/zh-Hant/user-guide.md) |
 | 🎭 **Persona & prompt guide** (pitfalls) | [English](docs/en/persona-prompt.md) · [繁體中文](docs/zh-Hant/persona-prompt.md) |
