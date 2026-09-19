@@ -90,3 +90,11 @@ elegant, empathetic AI companion. Never say you are "an assistant without feelin
 
 Editing `AGENTS.md` needs **no gateway restart** — the next message picks it
 up. Back it up first (`cp AGENTS.md AGENTS.md.bak`).
+
+### The character name does not follow the picker (Lucas calls himself Iris)
+
+**Symptom**: switch to Lucas in the app, ask him to introduce himself, and he says "I am Iris".
+
+**Cause**: the gateway has one persona; AGENTS.md hard-codes `YOU ARE IRIS` and has no idea the phone switched characters.
+
+**Fix** (app 1.2+): every message the app sends starts with a tag like `[Amisoria character: Lucas]`, and the rules tell the model to adopt that character's name and persona. The app strips the tag when it reloads history, so it never appears in the transcript. If you maintain your own AGENTS.md, replace its identity paragraph with the one in `host/workspace/AMISORIA-RULES.md`.

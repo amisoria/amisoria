@@ -64,3 +64,11 @@ in one sentence unless the user does. If the user's language is ambiguous
 ---
 
 修改 `AGENTS.md` 後**不需要重啟 Gateway**，下一則訊息即生效。改動前請先備份（`cp AGENTS.md AGENTS.md.bak`）。
+
+### 角色名字沒跟著切換（Lucas 自稱 Iris）
+
+**症狀**：在 App 切到 Lucas，問他「介紹一下你自己」，他說「我是 Iris」。
+
+**原因**：Gateway 只有一份人設，AGENTS.md 寫死 `YOU ARE IRIS`，它不知道手機上換了角色。
+
+**解法**（App 1.2 起）：App 送出的每則訊息開頭都帶 `[Amisoria character: Lucas]` 這種標記，人設規則改成「依標記採用該角色的名字與個性」。標記會在載入歷史時被 App 去掉，對話紀錄看不到它。若你自己寫 AGENTS.md，把身分段落改成 `host/workspace/AMISORIA-RULES.md` 裡的寫法即可。
