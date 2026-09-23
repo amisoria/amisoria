@@ -28,8 +28,9 @@ the iPhone reaches your Mac mini over a private, encrypted **Tailscale** network
    ```bash
    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash
    source ~/.zshrc
-   nvm install --lts
+   nvm install 26
    ```
+   OpenClaw 2026.9.3 and later require Node 24.16+ or 26.1+; Node 26 is what OpenClaw recommends, so `nvm install 26` above is deliberate.
 2. Install OpenClaw and run its onboarding (picks a model, creates the gateway token):
    ```bash
    npm install -g openclaw
@@ -155,3 +156,6 @@ After `npm i -g openclaw@latest`, verify the following (we hit every one of thes
 5. The Amisoria app needs **1.1 or later** to connect to OpenClaw 2026.9.1 (it now requires `client.buildId`).
 6. **App connections rejected with 403 `proxy_attribution_required`**: the new version requires declaring trusted proxies. Set `gateway.trustedProxies` to `["127.0.0.1", "::1"]` (Tailscale Serve forwards from loopback; `setup-host.sh` now does this).
 7. **Server voice silently falls back to the device voice, lips stop moving**: since 2026.9.1 TTS files are written to `~/.openclaw/media/tool-speech-synthesis/`; an older bridge only allows `/private/tmp/openclaw/` and answers 403. Update the bridge (re-run `setup-host.sh`).
+8. **2026.9.3 and later need a newer Node**: Node 24.16+ (on 24.x) or Node 26.1+ (26 recommended). Upgrade Node **before** OpenClaw — older Node builds truncate SQLite text and can corrupt session history. Check with `node -v`.
+9. **2026.9.5 defers legacy repairs**: older pairing records and conversation data are no longer migrated on ordinary startup. If the Gateway reports pending repairs after the upgrade, stop it and run `openclaw doctor --fix` once.
+10. **Check what the app sees**: Amisoria 1.3+ shows the connected Gateway version in Settings with a green / orange / red dot. Which versions we have actually run end-to-end, and what each release changed for us, is in [compatibility.md](compatibility.md).

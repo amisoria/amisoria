@@ -39,6 +39,19 @@ if [ -z "$OPENCLAW" ]; then
 fi
 [ -n "$OPENCLAW" ] || die "openclaw not found. Install it first:  npm install -g openclaw   (then run: openclaw onboard)"
 ok "openclaw: $OPENCLAW ($("$OPENCLAW" --version 2>/dev/null | head -1))"
+# OpenClaw 2026.9.3+ needs Node 24.16+ (24.x) or 26.1+ (26 recommended); older Node
+# truncates SQLite text and can corrupt session history. Warn, don't die — the user
+# may still be on an older OpenClaw.
+NODE_BIN="$(dirname "$OPENCLAW")/node"; [ -x "$NODE_BIN" ] || NODE_BIN="$(command -v node || true)"
+NODE_V="$([ -n "$NODE_BIN" ] && "$NODE_BIN" -v 2>/dev/null | sed 's/^v//' || true)"
+if [ -n "$NODE_V" ]; then
+  if printf '%s' "$NODE_V" | python3 -c 'import sys; M,m=[int(x) for x in (sys.stdin.read().strip().split(".")+["0","0"])[:2]]; sys.exit(0 if (M==24 and m>=16) or M>26 or (M==26 and m>=1) else 1)'; then
+    ok "node: v$NODE_V"
+  else
+    warn "node v$NODE_V — OpenClaw 2026.9.3+ requires Node 24.16+ or 26.1+ (26 recommended)."
+    warn "Upgrade Node BEFORE upgrading OpenClaw:  nvm install 26 && nvm alias default 26 && npm i -g openclaw"
+  fi
+fi
 [ -f "$OC_CFG" ] || die "$OC_CFG not found — run 'openclaw onboard' once, then re-run this script."
 [ -x "$TS" ] || die "Tailscale.app not found. Install from https://tailscale.com/download/mac and sign in."
 "$TS" status >/dev/null 2>&1 || die "Tailscale is installed but not connected — open Tailscale.app and sign in."

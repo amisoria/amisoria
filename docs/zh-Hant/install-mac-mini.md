@@ -28,8 +28,9 @@ iPhone 透過 **Tailscale** 私人加密網路找到你的 Mac mini。
    ```bash
    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash
    source ~/.zshrc
-   nvm install --lts
+   nvm install 26
    ```
+   OpenClaw 2026.9.3 起需要 Node 24.16 以上或 26.1 以上；OpenClaw 官方建議 26，所以上面裝的是 `nvm install 26`。
 2. 安裝 OpenClaw 並完成初始設定(會問你要用哪家模型、並產生 gateway token):
    ```bash
    npm install -g openclaw
@@ -154,3 +155,6 @@ sudo pmset -c sleep 0 disksleep 0
 5. Amisoria App 需 **1.1 以上**才能連 OpenClaw 2026.9.1（新版要求 `client.buildId`）。
 6. **App 連線被 403 拒絕、訊息 `proxy_attribution_required`**：新版要求宣告信任的代理。`gateway.trustedProxies` 設為 `["127.0.0.1", "::1"]`（Tailscale Serve 由 loopback 轉發；`setup-host.sh` 已包含）。
 7. **伺服器語音變成裝置語音、嘴形不動**：2026.9.1 起 TTS 音檔改存 `~/.openclaw/media/tool-speech-synthesis/`，舊版 bridge 只允許 `/private/tmp/openclaw/` 會回 403。請更新 bridge（重跑 `setup-host.sh` 即可）。
+8. **2026.9.3 起需要較新的 Node**：Node 24.16 以上（24.x）或 Node 26.1 以上（建議 26）。**先升 Node 再升 OpenClaw**，舊版 Node 會截斷 SQLite 文字、弄壞對話紀錄。用 `node -v` 檢查。
+9. **2026.9.5 不再於啟動時自動修復舊資料**：舊的配對記錄與對話資料改成手動修復。升級後若 Gateway 提示有待修復項目，先停掉 Gateway，執行一次 `openclaw doctor --fix`。
+10. **看 App 怎麼判定**：Amisoria 1.3 起，「連線設定」會顯示所連 Gateway 的版本與綠／橘／紅圓點。哪些版本我們真的完整跑過、每一版對我們的影響，見 [compatibility.md](compatibility.md)。

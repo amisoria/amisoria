@@ -1,0 +1,46 @@
+# OpenClaw 版本相容性
+
+OpenClaw 一個月會出好幾版，Amisoria **不會**每一版都追。我們的做法是：
+
+- **App 只依賴 Gateway 一小塊穩定的介面**（見下表），不依賴版本號。只要新版沒動到這塊介面，App 就照常運作。
+- **一次只完整驗證一個版本**：語音、對嘴、模型切換、寫入 API 金鑰、裝置配對全部跑過才標為「已驗證」。新版本上線後先等約一週（讓社群先踩雷），再進行測試。
+- **App 會告訴你目前的處境。** Amisoria 1.3 起，「連線設定」最下方會顯示 Gateway 版本和一個圓點：綠色＝已驗證；橘色＝尚未測試，但 App 需要的功能都在；紅色＝缺少 App 會呼叫的功能（會寫出原因）。更早的 App 版本只會直接嘗試連線。
+
+## Amisoria 實際用到的東西
+
+| 介面 | 內容 |
+|---|---|
+| WebSocket 協定 | `4`（連線握手時檢查） |
+| 連線參數 | control-ui 型客戶端、必須帶 `client.buildId`（2026.9.1 起）、Ed25519 裝置身分 v2、Gateway token |
+| RPC 方法 | `chat.startup`、`chat.send`、`sessions.messages.subscribe`、`sessions.patch`、`models.list`、`tts.status`、`tts.providers`、`tts.setProvider`、`tts.convert`、`config.get`、`config.patch`、`health` |
+| 串流事件 | `session.message`（助理的串流內容可能在回覆中途被整段改寫，App 已處理） |
+| 檔案（透過 bridge） | TTS 輸出在 `~/.openclaw/media/`（2026.9.1 起）或 `/private/tmp/openclaw/`（更早版本） |
+| 主機端 | 用 `openclaw devices approve` 配對；走 Tailscale Serve 時需要 `gateway.tailscale.mode: "off"` 與 `gateway.trustedProxies` |
+
+未來若有版本改名或移除上述方法，App 會顯示紅點並寫出缺少的方法，本頁也會說明處理方式。
+
+## 各版本狀態
+
+| OpenClaw | 狀態 | Amisoria | 備註 |
+|---|---|---|---|
+| 2026.9.5 | 測試中 | — | 已看過更新紀錄，沒有動到上述介面。升級注意：9.5 把舊的配對／對話資料修復改成要手動執行 `openclaw doctor --fix`，升級後若 Gateway 提示有待修復項目，跑一次即可。 |
+| 2026.9.4 | 未測試 | — | 已看過更新紀錄，沒有動到上述介面。 |
+| 2026.9.3 | 未測試 | — | **主機端重大變更：**需要 Node 24.16 以上（24.x）或 Node 26.1 以上（建議 26）。**先升 Node 再升 OpenClaw**，否則 SQLite 文字截斷可能弄壞對話紀錄。 |
+| 2026.9.2 | 未測試 | — | 新增大型對話啟動的 WebSocket 壓縮，我們要實際測過才會標為已驗證。 |
+| **2026.9.1** | **已驗證** | 1.1 以上 | 主機腳本與安裝指南針對的版本。從 2026.7 升上來的坑都記在[安裝指南](install-mac-mini.md#升級-openclaw-時的注意事項)。 |
+| 2026.7.x | 1.0 可用 | 1.0 | Amisoria 1.0 是在這個版本上開發的。1.1 開始送 `client.buildId` 後沒有再回頭測。 |
+
+「未測試」就是字面意思，不代表壞掉。如果你在那些版本上跑得動（或跑不動），到 [Issues](https://github.com/amisoria/amisoria/issues) 留一句話，對所有人都有幫助。
+
+## 升級步驟
+
+1. 先看上表該版本那一列，以及[升級注意事項](install-mac-mini.md#升級-openclaw-時的注意事項)。
+2. 備份 `~/.openclaw/openclaw.json`。升級曾經默默丟掉設定鍵（`agents.defaults.compaction.reserveTokensFloor`）。
+3. 該版本若要求新 Node，先升 Node，再 `npm i -g openclaw@<版本>`。
+4. 升完先在前景跑一次 `openclaw gateway`，看第一頁輸出。launchd 服務把 stderr 丟到 `/dev/null`，設定錯誤在服務模式下只會看到一直重啟。
+5. 重新執行 `host/setup-host.sh`，它會補回 App 依賴的設定並更新 bridge。
+6. 打開 Amisoria → 連線設定，看 Gateway 版本的圓點顏色。
+
+## 一段話說明政策
+
+「已驗證」只有上表標示的版本，其餘都是盡力支援。我們自己的主機固定在最新的已驗證版本；新版本上線約一週後測試，完整流程通過就把「已驗證」往前移。我們不會為舊版 OpenClaw 回頭修補；若哪一版真的動到 App 依賴的介面，會在本頁明說。
