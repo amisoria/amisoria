@@ -23,7 +23,8 @@ If a future release renames or removes one of those methods, the app shows a red
 
 | OpenClaw | Status | Amisoria | Notes |
 |---|---|---|---|
-| 2026.9.5 | Testing | — | Changelog reviewed; no changes to the surface above. Upgrade notes: 9.5 defers legacy pairing/session repairs to `openclaw doctor --fix` — run it once after upgrading if the Gateway reports pending repairs. |
+| 2026.9.6 | Testing | — | Changelog reviewed (published 2026-09-23); nothing touching the surface above. Retires `sessions.compaction.*` (unused by us); invalid config now points to `openclaw doctor --fix`. Being tested on a fresh Mac mini. |
+| 2026.9.5 | Not tested | — | Changelog reviewed; no changes to the surface above. Upgrade notes: 9.5 defers legacy pairing/session repairs to `openclaw doctor --fix` — run it once after upgrading if the Gateway reports pending repairs. |
 | 2026.9.4 | Not tested | — | Changelog reviewed; nothing touching the surface above. |
 | 2026.9.3 | Not tested | — | **Breaking for hosts:** requires Node 24.16+ (24.x) or Node 26.1+ (26 recommended). Upgrade Node *before* OpenClaw or SQLite text truncation can corrupt history. |
 | 2026.9.2 | Not tested | — | Adds WebSocket payload compression for large chat startups; we want to test this explicitly before marking it verified. |

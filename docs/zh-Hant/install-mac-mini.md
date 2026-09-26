@@ -26,9 +26,12 @@ iPhone 透過 **Tailscale** 私人加密網路找到你的 Mac mini。
 
 1. 安裝 Node.js(建議用 nvm):
    ```bash
+   xcode-select --install   # 全新 Mac 才需要：對話框按「安裝」並等它裝完（下面的步驟需要 git）
+   touch ~/.zshrc           # 全新 Mac 才需要：nvm 要有 shell 設定檔才能寫入，新機器沒有這個檔
    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash
    source ~/.zshrc
    nvm install 26
+   nvm alias default 26
    ```
    OpenClaw 2026.9.3 起需要 Node 24.16 以上或 26.1 以上；OpenClaw 官方建議 26，所以上面裝的是 `nvm install 26`。
 2. 安裝 OpenClaw 並完成初始設定(會問你要用哪家模型、並產生 gateway token):

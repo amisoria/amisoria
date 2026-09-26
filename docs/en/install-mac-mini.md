@@ -26,9 +26,12 @@ the iPhone reaches your Mac mini over a private, encrypted **Tailscale** network
 
 1. Install Node.js (nvm recommended):
    ```bash
+   xcode-select --install   # fresh Mac only: click "Install" in the dialog and wait until it finishes (git is needed below)
+   touch ~/.zshrc           # fresh Mac only: nvm needs a shell profile to hook into, and a new Mac has none
    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash
    source ~/.zshrc
    nvm install 26
+   nvm alias default 26
    ```
    OpenClaw 2026.9.3 and later require Node 24.16+ or 26.1+; Node 26 is what OpenClaw recommends, so `nvm install 26` above is deliberate.
 2. Install OpenClaw and run its onboarding (picks a model, creates the gateway token):
