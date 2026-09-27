@@ -23,12 +23,12 @@ If a future release renames or removes one of those methods, the app shows a red
 
 | OpenClaw | Status | Amisoria | Notes |
 |---|---|---|---|
-| 2026.9.6 | Testing | — | Changelog reviewed (published 2026-09-23); nothing touching the surface above. Retires `sessions.compaction.*` (unused by us); invalid config now points to `openclaw doctor --fix`. Being tested on a fresh Mac mini. |
+| **2026.9.6** | **Verified** | 1.3 | Full flow passed on a fresh Mac mini (Node 26, 2026-09-27): text, server voice + lip-sync, mic, character switch, model switch, API-key write, 10-turn conversation. Retires `sessions.compaction.*` (unused by us); invalid config now points to `openclaw doctor --fix`. On a brand-new install the very first reply can take noticeably longer (the agent runs its bootstrap ritual and the Gateway may still be downloading the model catalog) — wait it out once. |
 | 2026.9.5 | Not tested | — | Changelog reviewed; no changes to the surface above. Upgrade notes: 9.5 defers legacy pairing/session repairs to `openclaw doctor --fix` — run it once after upgrading if the Gateway reports pending repairs. |
 | 2026.9.4 | Not tested | — | Changelog reviewed; nothing touching the surface above. |
 | 2026.9.3 | Not tested | — | **Breaking for hosts:** requires Node 24.16+ (24.x) or Node 26.1+ (26 recommended). Upgrade Node *before* OpenClaw or SQLite text truncation can corrupt history. |
 | 2026.9.2 | Not tested | — | Adds WebSocket payload compression for large chat startups; we want to test this explicitly before marking it verified. |
-| **2026.9.1** | **Verified** | 1.1+ | The version our host script and guides target. Upgrade pitfalls from 2026.7 are documented in the [install guide](install-mac-mini.md#upgrading-openclaw--things-to-check). |
+| 2026.9.1 | Verified | 1.1+ | The version our host script and guides were first written against. Upgrade pitfalls from 2026.7 are documented in the [install guide](install-mac-mini.md#upgrading-openclaw--things-to-check). |
 | 2026.7.x | Worked with 1.0 | 1.0 | Amisoria 1.0 was developed against it. Not re-tested since 1.1 started sending `client.buildId`. |
 
 "Not tested" means exactly that — not "broken". If you run one of those versions and it works (or doesn't), a note in [Issues](https://github.com/amisoria/amisoria/issues) helps everyone.
