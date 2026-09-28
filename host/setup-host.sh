@@ -11,6 +11,8 @@
 #         - compaction.reserveTokensFloor = 6000 where the release still accepts it
 #           (keeps small local models usable; 2026.9.6 retired the key and REJECTS it,
 #           so anything the installed OpenClaw flags as unrecognized is pruned again)
+#         - agents.defaults.models seeded with one curated model per provider
+#           (what the app's model picker lists; existing entries untouched)
 #         - tts.auto = off (the app runs its own voice pipeline)
 #    3. Installs the Amisoria bridge as a launchd service (com.amisoria.bridge).
 #    4. Exposes gateway + bridge through Tailscale Serve (HTTPS, tailnet-only).
@@ -92,6 +94,20 @@ for name in ["openai", "anthropic", "google", "openrouter", "ollama", "microsoft
     entries.setdefault(name, {})["enabled"] = True
 d = c.setdefault("agents", {}).setdefault("defaults", {})
 d.setdefault("compaction", {})["reserveTokensFloor"] = 6000
+# The app's model picker shows agents.defaults.models (the curated allowlist),
+# not the full catalog (400+ OpenRouter models). A fresh onboard leaves only the
+# onboarding model there, so seed one sensible entry per provider. Existing
+# entries and aliases are never overwritten; models whose provider has no API
+# key (or ollama when not installed) simply show as "not ready" in the app.
+m = d.setdefault("models", {})
+for mid, alias in [
+    ("openai/gpt-5.4-mini", "GPT"), ("openai/gpt-5.4", "GPT 5.4"),
+    ("anthropic/claude-haiku-4-5", "Claude Haiku"), ("anthropic/claude-sonnet-5", "Claude Sonnet"),
+    ("google/gemini-flash-latest", "Gemini Flash"), ("google/gemini-pro-latest", "Gemini Pro"),
+    ("openrouter/deepseek/deepseek-v4-flash", "DeepSeek"), ("openrouter/x-ai/grok-4.5", "Grok"),
+    ("openrouter/qwen/qwen3.7-plus", "Qwen"), ("ollama/qwen3:14b", "Local Qwen"),
+]:
+    m.setdefault(mid, {}).setdefault("alias", alias)
 json.dump(c, open(p, "w"), indent=2, ensure_ascii=False)
 print("  config updated")
 PY
