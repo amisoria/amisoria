@@ -103,7 +103,9 @@ m = d.setdefault("models", {})
 for mid, alias in [
     ("openai/gpt-5.4-mini", "GPT"), ("openai/gpt-5.4", "GPT 5.4"),
     ("anthropic/claude-haiku-4-5", "Claude Haiku"), ("anthropic/claude-sonnet-5", "Claude Sonnet"),
-    ("google/gemini-flash-latest", "Gemini Flash"), ("google/gemini-pro-latest", "Gemini Pro"),
+    # Gemini: Flash only — free-tier Google keys have no Pro access, and the
+    # free tier overloads (HTTP 503) often enough that it is a backup, not a first pick.
+    ("google/gemini-flash-latest", "Gemini Flash"),
     ("openrouter/deepseek/deepseek-v4-flash", "DeepSeek"), ("openrouter/x-ai/grok-4.5", "Grok"),
     ("openrouter/qwen/qwen3.7-plus", "Qwen"), ("ollama/qwen3:14b", "Local Qwen"),
 ]:
