@@ -8,7 +8,9 @@
 #         - gateway.bind = loopback, gateway.tailscale.mode = off (we run tailscale serve ourselves)
 #         - gateway.controlUi.allowedOrigins += https://<your-magicdns>
 #         - enables provider plugins: openai, anthropic, google, openrouter, ollama, microsoft
-#         - compaction.reserveTokensFloor = 6000 (keeps small local models usable)
+#         - compaction.reserveTokensFloor = 6000 where the release still accepts it
+#           (keeps small local models usable; 2026.9.6 retired the key and REJECTS it,
+#           so anything the installed OpenClaw flags as unrecognized is pruned again)
 #         - tts.auto = off (the app runs its own voice pipeline)
 #    3. Installs the Amisoria bridge as a launchd service (com.amisoria.bridge).
 #    4. Exposes gateway + bridge through Tailscale Serve (HTTPS, tailnet-only).
@@ -93,6 +95,40 @@ d.setdefault("compaction", {})["reserveTokensFloor"] = 6000
 json.dump(c, open(p, "w"), indent=2, ensure_ascii=False)
 print("  config updated")
 PY
+# Newer releases retire config keys and then refuse to start ("OpenClaw config is
+# invalid ... Unrecognized key"). 2026.9.6 did this to compaction.reserveTokensFloor.
+# Validate with the installed CLI and prune whatever it rejects, so re-running this
+# script on a newer OpenClaw can never leave the gateway unable to boot.
+for _ in 1 2 3; do
+  VALIDATE="$("$OPENCLAW" config validate 2>&1 || true)"
+  echo "$VALIDATE" | grep -q "Unrecognized key" || break
+  python3 - "$OC_CFG" "$VALIDATE" <<'PY'
+import json, re, sys
+p, out = sys.argv[1], sys.argv[2]
+c = json.load(open(p))
+for parent, key in re.findall(r'([A-Za-z0-9_.]*): Unrecognized key: "([^"]+)"', out):
+    node = c
+    for part in [x for x in parent.split(".") if x]:
+        node = node.get(part) if isinstance(node, dict) else None
+        if node is None: break
+    if isinstance(node, dict) and key in node:
+        del node[key]
+        print(f"  pruned {parent + '.' if parent else ''}{key} (not accepted by this OpenClaw)")
+# drop dicts left empty by the pruning
+def prune(d):
+    for k in list(d):
+        if isinstance(d[k], dict):
+            prune(d[k])
+            if not d[k]: del d[k]
+prune(c)
+json.dump(c, open(p, "w"), indent=2, ensure_ascii=False)
+PY
+done
+if "$OPENCLAW" config validate >/dev/null 2>&1; then
+  ok "openclaw.json validates with $("$OPENCLAW" --version 2>/dev/null | head -1)"
+else
+  warn "openclaw.json still invalid — run: openclaw config validate   (then: openclaw doctor --fix)"
+fi
 mkdir -p "$OC_DIR/settings"
 python3 - "$OC_DIR/settings/tts.json" <<'PY'
 import json, os, sys

@@ -128,7 +128,7 @@ Then add the model to OpenClaw's roster (`~/.openclaw/openclaw.json` → `agents
 | `pairing required` keeps appearing | Not approved yet, or the gateway restarted before approval. `openclaw devices list` → approve the new id. |
 | Connected but **no voice**, every reply female | Server voice unreachable → app fell back to iPhone's built-in voice. Check the bridge: `curl -s -o /dev/null -w "%{http_code}" https://<MagicDNS>/bridge/tts?path=x` should print `404` (alive); `000` means it's down → `launchctl kickstart -k gui/$(id -u)/com.amisoria.bridge`. |
 | Model returns `402` / `429` | 402 = OpenRouter has no credits; 429 = free quota exhausted or the key lacks that model (Google's free tier has Flash only, no Pro). |
-| Local model: `Auto-compaction could not recover` | `agents.defaults.compaction.reserveTokensFloor` too large (fatal for 33k-context models). The script sets 6000. You can also tap ✏️ New conversation in the app. |
+| Local model: `Auto-compaction could not recover` | On OpenClaw ≤ 2026.9.1 `agents.defaults.compaction.reserveTokensFloor` was too large for 33k-context models; the script sets 6000 there. 2026.9.6 retired the key (built-in defaults apply) and the script leaves it out. You can also tap ✏️ New conversation in the app. |
 | Replies show "Audio reply" | Server-side auto-TTS is on. The script sets `tts.auto` to off. |
 | App can't connect after a Mac mini reboot | Gateway and bridge are launchd services and come back on their own; Tailscale Serve config persists. If not, re-run `setup-host.sh`. |
 
@@ -153,7 +153,7 @@ Verify: `pmset -g | grep -E " sleep|disksleep"` should show `sleep 0`.
 After `npm i -g openclaw@latest`, verify the following (we hit every one of these going 2026.7 → 2026.9.1):
 
 1. **Gateway won't start, exit code 78 (EX_CONFIG)**: since 2026.9.1 OpenClaw verifies ownership of the Tailscale port-443 route and refuses to start when it finds our hand-managed `tailscale serve` config (root + `/bridge`). Fix: set `gateway.tailscale.mode` to `"off"` in `openclaw.json` (`setup-host.sh` now does this). Do **not** follow the error's advice to remove the root handler — that would tear down the route the app needs.
-2. **Config migration may drop `agents.defaults.compaction.reserveTokensFloor`**: re-check it is `6000`, or 33k-context local models break.
+2. **Do not hand-add retired keys.** 2026.9.6 retired the numeric tuning keys (`agents.defaults.compaction.reserveTokensFloor`, `gateway.controlUi.allowInsecureAuth`) and *rejects* them: the config is reported invalid, every `openclaw` CLI command refuses to run (the app's "apply API key" then fails with ⚠️) and the Gateway will not start after its next restart. `openclaw config validate` names the offending key; `openclaw doctor --fix` or re-running `setup-host.sh` (which now prunes rejected keys) repairs it. On ≤ 2026.9.1 the same key was needed (`6000`) to keep 33k-context local models usable.
 3. **Check `plugins.entries`** still lists `microsoft` (server voice) and your model providers.
 4. The real error goes to `~/Library/Logs/openclaw/gateway.log` (stderr is /dev/null by default); to see it: `launchctl bootout gui/$(id -u)/ai.openclaw.gateway`, then run `openclaw gateway` in the foreground for a few seconds.
 5. The Amisoria app needs **1.1 or later** to connect to OpenClaw 2026.9.1 (it now requires `client.buildId`).

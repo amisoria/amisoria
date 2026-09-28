@@ -127,7 +127,7 @@ app 的模型選單會出現「Local Qwen」。
 | `pairing required` 一直出現 | 還沒核准,或核准前 gateway 重啟了。`openclaw devices list` 取得新 ID 再 approve。 |
 | 連上了但**沒聲音**,且每句都變成女聲 | 伺服器語音取不到 → app 退回 iPhone 內建語音。檢查 bridge:`curl -s -o /dev/null -w "%{http_code}" https://<MagicDNS>/bridge/tts?path=x` 應回 `404`(服務活著);`000` 代表 bridge 掛了 → `launchctl kickstart -k gui/$(id -u)/com.amisoria.bridge`。 |
 | 模型回 `402` / `429` | 402 = OpenRouter 未儲值;429 = 免費配額用盡或該 key 無此模型權限(Google 免費層只有 Flash,沒有 Pro)。 |
-| 本地模型 `Auto-compaction could not recover` | `agents.defaults.compaction.reserveTokensFloor` 太大(對 33k 視窗模型致命)。腳本已設 6000。也可在 app 按 ✏️ 開新對話。 |
+| 本地模型 `Auto-compaction could not recover` | OpenClaw 2026.9.1 以前 `agents.defaults.compaction.reserveTokensFloor` 預設太大(對 33k 視窗模型致命)，腳本在那些版本會設 6000。2026.9.6 起這個鍵已退役(改用內建預設)，腳本不會再寫入。也可在 app 按 ✏️ 開新對話。 |
 | 回覆變成「Audio reply」 | 伺服器端自動 TTS 開著。腳本已把 `tts.auto` 設為 off。 |
 | Mac mini 重開機後 app 連不上 | gateway 與 bridge 都是 launchd 服務會自動起來;Tailscale Serve 設定也會保留。若仍不行,重跑 `setup-host.sh`。 |
 
@@ -152,7 +152,7 @@ sudo pmset -c sleep 0 disksleep 0
 `npm i -g openclaw@latest` 之後，請務必檢查以下幾點（我們在 2026.7 → 2026.9.1 升級時全部踩到）：
 
 1. **Gateway 起不來、exit code 78（EX_CONFIG）**：2026.9.1 起 OpenClaw 會「驗證」Tailscale 443 路由的所有權，看到我們手動設定的 `tailscale serve`（根路徑 + `/bridge`）就拒絕啟動。解法：`openclaw.json` 裡把 `gateway.tailscale.mode` 設為 `"off"`（`setup-host.sh` 已改為此設定），**不要**照錯誤訊息把根路徑移除——那會拆掉 App 需要的路由。
-2. **設定遷移可能丟掉 `agents.defaults.compaction.reserveTokensFloor`**：重新確認為 `6000`，否則 33k 上下文的本地模型會壞掉。
+2. **不要手動補回已退役的鍵。** 2026.9.6 把數值調校鍵（`agents.defaults.compaction.reserveTokensFloor`、`gateway.controlUi.allowInsecureAuth`）退役，而且會**拒絕**它們：設定被判定無效後，所有 `openclaw` 指令都不執行（App 的「套用 API 金鑰」會變成 ⚠️），Gateway 下次重啟也起不來。`openclaw config validate` 會指出是哪個鍵；執行 `openclaw doctor --fix` 或重跑 `setup-host.sh`（現在會自動移除被拒絕的鍵）即可修復。在 2026.9.1 以前這個鍵反而是必要的（`6000`），否則 33k 上下文的本地模型會壞掉。
 3. **確認 `plugins.entries`** 仍有 `microsoft`（伺服器語音）與你用的模型供應商。
 4. 真正的錯誤訊息在 `~/Library/Logs/openclaw/gateway.log`（stderr 預設丟到 /dev/null）；查看方式：`launchctl bootout gui/$(id -u)/ai.openclaw.gateway` 後前景執行 `openclaw gateway` 幾秒。
 5. Amisoria App 需 **1.1 以上**才能連 OpenClaw 2026.9.1（新版要求 `client.buildId`）。

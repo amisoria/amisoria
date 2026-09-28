@@ -23,7 +23,7 @@ OpenClaw 一個月會出好幾版，Amisoria **不會**每一版都追。我們�
 
 | OpenClaw | 狀態 | Amisoria | 備註 |
 |---|---|---|---|
-| **2026.9.6** | **已驗證** | 1.3 | 在全新 Mac mini（Node 26）上完整跑過（2026-09-27）：文字、伺服器語音＋對嘴、麥克風、角色切換、模型切換、寫入 API 金鑰、10 句長對話。移除了 `sessions.compaction.*`（我們沒用）；設定錯誤現在會引導執行 `openclaw doctor --fix`。**全新安裝的第一句回覆會明顯比較慢**（代理要先跑開機儀式，Gateway 也可能還在下載模型目錄），多等一下就好，只有第一次。 |
+| **2026.9.6** | **已驗證** | 1.3 | 在全新 Mac mini（Node 26）上完整跑過（2026-09-27）：文字、伺服器語音＋對嘴、麥克風、角色切換、模型切換、寫入 API 金鑰、10 句長對話。移除了 `sessions.compaction.*`（我們沒用）；設定錯誤現在會引導執行 `openclaw doctor --fix`。**全新安裝的第一句回覆會明顯比較慢**（代理要先跑開機儀式，Gateway 也可能還在下載模型目錄），多等一下就好，只有第一次。**退役了 `agents.defaults.compaction.reserveTokensFloor`**，檔案裡若還有會被拒絕（設定無效 → CLI 不執行、App 套用金鑰失敗、Gateway 重啟不了）；2026-09-28 之後的 `setup-host.sh` 會自動移除，舊版腳本會寫入它，請執行 `openclaw doctor --fix` 或重跑腳本。OpenAI 模型改走 codex 外掛，串流結束時會用 `replace:true` 把完整回覆再送一次；Amisoria 1.3 已處理，1.2 會把這種回覆顯示並念兩次。 |
 | 2026.9.5 | 未測試 | — | 已看過更新紀錄，沒有動到上述介面。升級注意：9.5 把舊的配對／對話資料修復改成要手動執行 `openclaw doctor --fix`，升級後若 Gateway 提示有待修復項目，跑一次即可。 |
 | 2026.9.4 | 未測試 | — | 已看過更新紀錄，沒有動到上述介面。 |
 | 2026.9.3 | 未測試 | — | **主機端重大變更：**需要 Node 24.16 以上（24.x）或 Node 26.1 以上（建議 26）。**先升 Node 再升 OpenClaw**，否則 SQLite 文字截斷可能弄壞對話紀錄。 |
@@ -36,7 +36,7 @@ OpenClaw 一個月會出好幾版，Amisoria **不會**每一版都追。我們�
 ## 升級步驟
 
 1. 先看上表該版本那一列，以及[升級注意事項](install-mac-mini.md#升級-openclaw-時的注意事項)。
-2. 備份 `~/.openclaw/openclaw.json`。升級曾經默默丟掉設定鍵（`agents.defaults.compaction.reserveTokensFloor`）。
+2. 備份 `~/.openclaw/openclaw.json`。新版會把某些鍵退役（2026.9.6：`agents.defaults.compaction.reserveTokensFloor`、`gateway.controlUi.allowInsecureAuth`），退役的鍵留在檔案裡會讓設定無效、Gateway 起不來。用 `openclaw config validate` 檢查；不要手動補回。
 3. 該版本若要求新 Node，先升 Node，再 `npm i -g openclaw@<版本>`。
 4. 升完先在前景跑一次 `openclaw gateway`，看第一頁輸出。launchd 服務把 stderr 丟到 `/dev/null`，設定錯誤在服務模式下只會看到一直重啟。
 5. 重新執行 `host/setup-host.sh`，它會補回 App 依賴的設定並更新 bridge。

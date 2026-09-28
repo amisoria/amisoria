@@ -23,7 +23,7 @@ If a future release renames or removes one of those methods, the app shows a red
 
 | OpenClaw | Status | Amisoria | Notes |
 |---|---|---|---|
-| **2026.9.6** | **Verified** | 1.3 | Full flow passed on a fresh Mac mini (Node 26, 2026-09-27): text, server voice + lip-sync, mic, character switch, model switch, API-key write, 10-turn conversation. Retires `sessions.compaction.*` (unused by us); invalid config now points to `openclaw doctor --fix`. On a brand-new install the very first reply can take noticeably longer (the agent runs its bootstrap ritual and the Gateway may still be downloading the model catalog) — wait it out once. |
+| **2026.9.6** | **Verified** | 1.3 | Full flow passed on a fresh Mac mini (Node 26, 2026-09-27): text, server voice + lip-sync, mic, character switch, model switch, API-key write, 10-turn conversation. Retires `sessions.compaction.*` (unused by us); invalid config now points to `openclaw doctor --fix`. On a brand-new install the very first reply can take noticeably longer (the agent runs its bootstrap ritual and the Gateway may still be downloading the model catalog) — wait it out once. **Retires `agents.defaults.compaction.reserveTokensFloor`** and rejects it if present (config invalid → CLI refuses, API-key apply fails, Gateway won't restart); `setup-host.sh` from 2026-09-28 on prunes it automatically, older copies wrote it — run `openclaw doctor --fix` or re-run the script. OpenAI models now run through the codex plugin and the reply stream re-sends the completed text with `replace:true`; Amisoria 1.3 handles that, 1.2 shows and speaks such replies twice. |
 | 2026.9.5 | Not tested | — | Changelog reviewed; no changes to the surface above. Upgrade notes: 9.5 defers legacy pairing/session repairs to `openclaw doctor --fix` — run it once after upgrading if the Gateway reports pending repairs. |
 | 2026.9.4 | Not tested | — | Changelog reviewed; nothing touching the surface above. |
 | 2026.9.3 | Not tested | — | **Breaking for hosts:** requires Node 24.16+ (24.x) or Node 26.1+ (26 recommended). Upgrade Node *before* OpenClaw or SQLite text truncation can corrupt history. |
@@ -36,7 +36,7 @@ If a future release renames or removes one of those methods, the app shows a red
 ## Upgrading
 
 1. Read the version's row above and the [upgrade checklist](install-mac-mini.md#upgrading-openclaw--things-to-check).
-2. Back up `~/.openclaw/openclaw.json`; upgrades have silently dropped keys before (`agents.defaults.compaction.reserveTokensFloor`).
+2. Back up `~/.openclaw/openclaw.json`. Releases retire keys (2026.9.6: `agents.defaults.compaction.reserveTokensFloor`, `gateway.controlUi.allowInsecureAuth`); a retired key left in the file makes the config invalid and the Gateway refuses to start. `openclaw config validate` tells you; do not re-add keys by hand.
 3. Upgrade Node first if the release requires it, then `npm i -g openclaw@<version>`.
 4. Run the Gateway in the foreground once (`openclaw gateway`) and read the first screen of output — the launchd service sends stderr to `/dev/null`, so a config error otherwise looks like a silent restart loop.
 5. Re-run `host/setup-host.sh`; it re-applies the settings the app depends on and updates the bridge.
