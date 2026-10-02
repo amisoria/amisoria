@@ -28,7 +28,7 @@ If a future release renames or removes one of those methods, the app shows a red
 | 2026.9.4 | Not tested | — | Changelog reviewed; nothing touching the surface above. |
 | 2026.9.3 | Not tested | — | **Breaking for hosts:** requires Node 24.16+ (24.x) or Node 26.1+ (26 recommended). Upgrade Node *before* OpenClaw or SQLite text truncation can corrupt history. |
 | 2026.9.2 | Not tested | — | Adds WebSocket payload compression for large chat startups; we want to test this explicitly before marking it verified. |
-| 2026.9.1 | Verified | 1.1+ | The version our host script and guides were first written against. Upgrade pitfalls from 2026.7 are documented in the [install guide](install-mac-mini.md#upgrading-openclaw--things-to-check). |
+| 2026.9.1 | Verified | 1.1 – 1.2 | The version our host script and guides were first written against. Amisoria 1.3 was verified on 2026.9.6 only and has not been re-run against 9.1; nothing in 1.3 depends on a newer gateway, so it is expected to work. Upgrade pitfalls from 2026.7 are documented in the [install guide](install-mac-mini.md#upgrading-openclaw--things-to-check). |
 | 2026.7.x | Worked with 1.0 | 1.0 | Amisoria 1.0 was developed against it. Not re-tested since 1.1 started sending `client.buildId`. |
 
 "Not tested" means exactly that — not "broken". If you run one of those versions and it works (or doesn't), a note in [Issues](https://github.com/amisoria/amisoria/issues) helps everyone.
