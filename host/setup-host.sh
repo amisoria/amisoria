@@ -41,7 +41,7 @@ if [ -z "$OPENCLAW" ]; then
   # nvm installs are not on PATH for non-login shells — look there too
   OPENCLAW="$(ls -d "$HOME"/.nvm/versions/node/*/bin/openclaw 2>/dev/null | tail -1 || true)"
 fi
-[ -n "$OPENCLAW" ] || die "openclaw not found. Install it first:  npm install -g openclaw   (then run: openclaw onboard)"
+[ -n "$OPENCLAW" ] || die "openclaw not found. Install it first:  npm install -g openclaw@2026.9.6   (then run: openclaw onboard)"
 ok "openclaw: $OPENCLAW ($("$OPENCLAW" --version 2>/dev/null | head -1))"
 # OpenClaw 2026.9.3+ needs Node 24.16+ (24.x) or 26.1+ (26 recommended); older Node
 # truncates SQLite text and can corrupt session history. Warn, don't die — the user
@@ -53,7 +53,7 @@ if [ -n "$NODE_V" ]; then
     ok "node: v$NODE_V"
   else
     warn "node v$NODE_V — OpenClaw 2026.9.3+ requires Node 24.16+ or 26.1+ (26 recommended)."
-    warn "Upgrade Node BEFORE upgrading OpenClaw:  nvm install 26 && nvm alias default 26 && npm i -g openclaw"
+    warn "Upgrade Node BEFORE upgrading OpenClaw:  nvm install 26 && nvm alias default 26 && npm i -g openclaw@2026.9.6"
   fi
 fi
 [ -f "$OC_CFG" ] || die "$OC_CFG not found — run 'openclaw onboard' once, then re-run this script."

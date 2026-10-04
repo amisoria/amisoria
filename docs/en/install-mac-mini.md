@@ -36,9 +36,10 @@ the iPhone reaches your Mac mini over a private, encrypted **Tailscale** network
    OpenClaw 2026.9.3 and later require Node 24.16+ or 26.1+; Node 26 is what OpenClaw recommends, so `nvm install 26` above is deliberate.
 2. Install OpenClaw and run its onboarding (picks a model, creates the gateway token):
    ```bash
-   npm install -g openclaw
+   npm install -g openclaw@2026.9.6
    openclaw onboard
    ```
+   `2026.9.6` is the newest release Amisoria has been verified against. A plain `npm install -g openclaw` installs the newest release, which may not have been tested yet — see [Compatibility](compatibility.md) first.
 3. Install the gateway as a login service so it survives reboots:
    ```bash
    openclaw gateway install
@@ -150,7 +151,7 @@ Verify: `pmset -g | grep -E " sleep|disksleep"` should show `sleep 0`.
 
 ## Upgrading OpenClaw — things to check
 
-After `npm i -g openclaw@latest`, verify the following (we hit every one of these going 2026.7 → 2026.9.1):
+Check [Compatibility](compatibility.md) for the newest verified version before upgrading. After `npm i -g openclaw@<version>`, verify the following (we hit every one of these going 2026.7 → 2026.9.1):
 
 1. **Gateway won't start, exit code 78 (EX_CONFIG)**: since 2026.9.1 OpenClaw verifies ownership of the Tailscale port-443 route and refuses to start when it finds our hand-managed `tailscale serve` config (root + `/bridge`). Fix: set `gateway.tailscale.mode` to `"off"` in `openclaw.json` (`setup-host.sh` now does this). Do **not** follow the error's advice to remove the root handler — that would tear down the route the app needs.
 2. **Do not hand-add retired keys.** 2026.9.6 retired the numeric tuning keys (`agents.defaults.compaction.reserveTokensFloor`, `gateway.controlUi.allowInsecureAuth`) and *rejects* them: the config is reported invalid, every `openclaw` CLI command refuses to run (the app's "apply API key" then fails with ⚠️) and the Gateway will not start after its next restart. `openclaw config validate` names the offending key; `openclaw doctor --fix` or re-running `setup-host.sh` (which now prunes rejected keys) repairs it. On ≤ 2026.9.1 the same key was needed (`6000`) to keep 33k-context local models usable.

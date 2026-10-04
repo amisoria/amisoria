@@ -36,9 +36,10 @@ iPhone 透過 **Tailscale** 私人加密網路找到你的 Mac mini。
    OpenClaw 2026.9.3 起需要 Node 24.16 以上或 26.1 以上；OpenClaw 官方建議 26，所以上面裝的是 `nvm install 26`。
 2. 安裝 OpenClaw 並完成初始設定(會問你要用哪家模型、並產生 gateway token):
    ```bash
-   npm install -g openclaw
+   npm install -g openclaw@2026.9.6
    openclaw onboard
    ```
+   `2026.9.6` 是 Amisoria 目前驗證過的最新版本。直接執行 `npm install -g openclaw` 會裝到最新版，可能還沒測過，請先看[相容性](compatibility.md)。
 3. 把 gateway 裝成開機自動啟動的常駐服務:
    ```bash
    openclaw gateway install
@@ -149,7 +150,7 @@ sudo pmset -c sleep 0 disksleep 0
 
 ## 升級 OpenClaw 時的注意事項
 
-`npm i -g openclaw@latest` 之後，請務必檢查以下幾點（我們在 2026.7 → 2026.9.1 升級時全部踩到）：
+升級前請先看[相容性](compatibility.md)確認目前驗證到哪一版。`npm i -g openclaw@<版本>` 之後，請務必檢查以下幾點（我們在 2026.7 → 2026.9.1 升級時全部踩到）：
 
 1. **Gateway 起不來、exit code 78（EX_CONFIG）**：2026.9.1 起 OpenClaw 會「驗證」Tailscale 443 路由的所有權，看到我們手動設定的 `tailscale serve`（根路徑 + `/bridge`）就拒絕啟動。解法：`openclaw.json` 裡把 `gateway.tailscale.mode` 設為 `"off"`（`setup-host.sh` 已改為此設定），**不要**照錯誤訊息把根路徑移除——那會拆掉 App 需要的路由。
 2. **不要手動補回已退役的鍵。** 2026.9.6 把數值調校鍵（`agents.defaults.compaction.reserveTokensFloor`、`gateway.controlUi.allowInsecureAuth`）退役，而且會**拒絕**它們：設定被判定無效後，所有 `openclaw` 指令都不執行（App 的「套用 API 金鑰」會變成 ⚠️），Gateway 下次重啟也起不來。`openclaw config validate` 會指出是哪個鍵；執行 `openclaw doctor --fix` 或重跑 `setup-host.sh`（現在會自動移除被拒絕的鍵）即可修復。在 2026.9.1 以前這個鍵反而是必要的（`6000`），否則 33k 上下文的本地模型會壞掉。
