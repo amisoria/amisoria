@@ -36,12 +36,12 @@ own always-on Mac (a Mac mini is ideal); your phone reaches it over a private Ta
 ## How it fits together
 
 ```
- iPhone (Amisoria app)                    Mac mini (always on)                     Cloud / local
- ┌───────────────────┐   Tailscale HTTPS  ┌─────────────────────────────┐
- │ 3D stage (three.js)│◀────── wss ──────▶│ OpenClaw gateway :18789      │──▶ OpenAI / Anthropic /
- │ voice + lip-sync   │◀──── /bridge ────▶│ Amisoria bridge  :18790       │    Google / OpenRouter
- │ 20-language STT    │                   │  (voice audio, keys, balance)│──▶ Ollama (local, optional)
- └───────────────────┘                    └─────────────────────────────┘
+ iPhone (Amisoria app)        Tailscale HTTPS   Mac mini (always on)                 Cloud / local
++--------------------------+                 +-----------------------------------+
+| 3D stage (three.js)      |<----- wss ----->| OpenClaw gateway        :18789    |----> OpenAI / Anthropic /
+| voice + lip-sync         |<--- /bridge --->| Amisoria bridge         :18790    |      Google / OpenRouter
+| 20-language STT          |                 |  (voice audio, keys, balance)     |----> Ollama (local, optional)
++--------------------------+                 +-----------------------------------+
 ```
 
 - **Device identity:** the phone signs the gateway's challenge with an Ed25519 key; you approve it once on the Mac (`openclaw devices approve`).
