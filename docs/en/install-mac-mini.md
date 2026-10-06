@@ -36,10 +36,10 @@ the iPhone reaches your Mac mini over a private, encrypted **Tailscale** network
    OpenClaw 2026.9.3 and later require Node 24.16+ or 26.1+; Node 26 is what OpenClaw recommends, so `nvm install 26` above is deliberate.
 2. Install OpenClaw and run its onboarding (picks a model, creates the gateway token):
    ```bash
-   npm install -g openclaw@2026.9.6
+   npm install -g openclaw@2026.9.8
    openclaw onboard
    ```
-   `2026.9.6` is the newest release Amisoria has been verified against. A plain `npm install -g openclaw` installs the newest release, which may not have been tested yet — see [Compatibility](compatibility.md) first.
+   `2026.9.8` is the newest release Amisoria has been verified against (Amisoria 1.4 or later). A plain `npm install -g openclaw` installs the newest release, which may not have been tested yet — see [Compatibility](compatibility.md) first.
 3. Install the gateway as a login service so it survives reboots:
    ```bash
    openclaw gateway install

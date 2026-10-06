@@ -36,10 +36,10 @@ iPhone 透過 **Tailscale** 私人加密網路找到你的 Mac mini。
    OpenClaw 2026.9.3 起需要 Node 24.16 以上或 26.1 以上；OpenClaw 官方建議 26，所以上面裝的是 `nvm install 26`。
 2. 安裝 OpenClaw 並完成初始設定(會問你要用哪家模型、並產生 gateway token):
    ```bash
-   npm install -g openclaw@2026.9.6
+   npm install -g openclaw@2026.9.8
    openclaw onboard
    ```
-   `2026.9.6` 是 Amisoria 目前驗證過的最新版本。直接執行 `npm install -g openclaw` 會裝到最新版，可能還沒測過，請先看[相容性](compatibility.md)。
+   `2026.9.8` 是 Amisoria 目前驗證過的最新版本（需 Amisoria 1.4 以上）。直接執行 `npm install -g openclaw` 會裝到最新版，可能還沒測過，請先看[相容性](compatibility.md)。
 3. 把 gateway 裝成開機自動啟動的常駐服務:
    ```bash
    openclaw gateway install
