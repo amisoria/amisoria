@@ -97,7 +97,8 @@ Keys live only in the iPhone Keychain and on your Mac mini. Nothing is uploaded 
 2. **Local models have no persona and no tools**: OpenClaw currently doesn't inject the system prompt for Ollama models (upstream issue), so Local Qwen won't call itself Iris or check the weather. Treat it as an offline fallback.
 3. **Stage wake-up**: after any stage reload you must tap once for sound (iOS audio policy).
 4. **Speech recognition**: iOS restarts recognition roughly every 60 s; hands-free handles it automatically — split very long monologues.
-5. **Barge-in**: your voice isn't captured while Iris is speaking; planned.
+5. **Barge-in**: with "Barge-in (experimental)" enabled in Settings you can interrupt Iris while she is speaking. The trade-off is call-mode voice processing, which makes her voice sound a little duller; with it off, Iris listens again only after she has finished.
+6. **Very long conversations get slow, confused and expensive**: every message sends the whole history of the conversation to the model. Once a conversation has grown to a few hundred messages (measured: 344 messages, ~100k tokens per turn), a small model starts answering the wrong question after a web search, replies take 20–38 s, and a single "hi" after a break costs ~100k input tokens. The fix is simple: tap ✏️ (top right) for a new conversation and replies are back to a few seconds. Start a new one whenever you change topic or it feels slow.
 
 ---
 
