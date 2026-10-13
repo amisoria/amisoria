@@ -19,6 +19,24 @@ OpenClaw 一個月會出好幾版，Amisoria **不會**每一版都追。我們�
 
 未來若有版本改名或移除上述方法，App 會顯示紅點並寫出缺少的方法，本頁也會說明處理方式。
 
+## 已知問題
+
+### Microsoft 語音回應 403（2026-10-12 起）
+
+Microsoft 在 2026-10-12 更換了 Edge「大聲朗讀」的端點。OpenClaw 到 **2026.10.2** 為止內建的 `node-edge-tts` 1.2.10 仍連舊主機，所以用 Microsoft 供應商的每一次 `tts.convert` 都失敗：`Unexpected server response: 403`。App 裡聽到的會變成 iPhone 內建語音（Amisoria 1.4 甚至會用中文裝置語音念英文回覆；1.4.1 已修正並會顯示提示）。
+
+在 OpenClaw 推出含新版 `node-edge-tts` 的版本之前，可以把內建的那份換成 1.2.11（新端點、API 相同）。在 Mac 上：
+
+```bash
+cd "$(npm root -g)/openclaw"
+cp -a node_modules/node-edge-tts ~/node-edge-tts-backup
+npm pack node-edge-tts@1.2.11 --silent && tar xzf node-edge-tts-1.2.11.tgz
+rm -rf node_modules/node-edge-tts && mv package node_modules/node-edge-tts && rm node-edge-tts-1.2.11.tgz
+openclaw gateway restart --force
+```
+
+2026-10-13 在 OpenClaw 2026.9.8 上驗證（zh-TW 與 en-US 語音，每句 0.5–0.8 秒）。下一次 `npm i -g openclaw@…` 會把這個修補蓋掉，升級後請再試一次語音；要還原就把備份資料夾放回去再重啟。之後若語音清單變成空的，表示 Gateway 自己抓語音清單的那條路（仍連舊主機）也壞了，請到 Issues 告訴我們。
+
 ## 各版本狀態
 
 | OpenClaw | 狀態 | Amisoria | 備註 |
