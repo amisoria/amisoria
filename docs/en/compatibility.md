@@ -23,7 +23,7 @@ If a future release renames or removes one of those methods, the app shows a red
 
 ### Microsoft voice returns 403 (since 2026-10-12)
 
-Microsoft moved the Edge "Read Aloud" endpoint on 2026-10-12. OpenClaw up to **2026.10.2** bundles `node-edge-tts` 1.2.10, which still talks to the old host, so every `tts.convert` with the Microsoft provider fails with `Unexpected server response: 403`. In the app you hear the iPhone's built-in voice instead (Amisoria 1.4 even reads English replies with a Chinese device voice; 1.4.1 fixes that and shows a notice).
+Microsoft moved the Edge "Read Aloud" endpoint on 2026-10-12. OpenClaw up to **2026.10.2** bundles `node-edge-tts` 1.2.10, which still talks to the old host, so every `tts.convert` with the Microsoft provider fails with `Unexpected server response: 403`. In the app you hear the iPhone's built-in voice instead. Amisoria 1.4 read even English replies with a Chinese device voice in that case; **1.4.1 (live since 2026-10-13)** uses the right language for the fallback and shows a notice in the chat so you know the server voice failed.
 
 Until an OpenClaw release ships a newer `node-edge-tts`, swap the bundled copy for 1.2.11 (new endpoint, same API). On the Mac:
 

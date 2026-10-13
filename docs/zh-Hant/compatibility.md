@@ -23,7 +23,7 @@ OpenClaw 一個月會出好幾版，Amisoria **不會**每一版都追。我們�
 
 ### Microsoft 語音回應 403（2026-10-12 起）
 
-Microsoft 在 2026-10-12 更換了 Edge「大聲朗讀」的端點。OpenClaw 到 **2026.10.2** 為止內建的 `node-edge-tts` 1.2.10 仍連舊主機，所以用 Microsoft 供應商的每一次 `tts.convert` 都失敗：`Unexpected server response: 403`。App 裡聽到的會變成 iPhone 內建語音（Amisoria 1.4 甚至會用中文裝置語音念英文回覆；1.4.1 已修正並會顯示提示）。
+Microsoft 在 2026-10-12 更換了 Edge「大聲朗讀」的端點。OpenClaw 到 **2026.10.2** 為止內建的 `node-edge-tts` 1.2.10 仍連舊主機，所以用 Microsoft 供應商的每一次 `tts.convert` 都失敗：`Unexpected server response: 403`。App 裡聽到的會變成 iPhone 內建語音。Amisoria 1.4 在這種情況下連英文回覆都用中文裝置語音念；**1.4.1（2026-10-13 上架）** 會用正確語言退回，並在對話中顯示提示讓你知道伺服器語音失敗了。
 
 在 OpenClaw 推出含新版 `node-edge-tts` 的版本之前，可以把內建的那份換成 1.2.11（新端點、API 相同）。在 Mac 上：
 
