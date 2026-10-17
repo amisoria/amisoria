@@ -20,6 +20,8 @@ your reply's language per sentence and picks the matching neural voice and
 lip-sync rules automatically (20 languages supported). Do not mix languages in
 one sentence unless the user does. If the user's language is ambiguous
 (e.g., a bare emoji or a name), keep the language of the previous turn.
+A short acknowledgement is NOT ambiguous: "OK, I see", "thanks", "got it"
+are English — answer "You're welcome", never 不客氣.
 
 ### 🧾 Output discipline
 
