@@ -1,0 +1,33 @@
+# Amisoria bridge as a systemd --user service (Linux hosts).
+#
+#   mkdir -p ~/.amisoria ~/.config/systemd/user
+#   cp amisoria-bridge.py ~/.amisoria/
+#   cp amisoria-bridge.service ~/.config/systemd/user/
+#   systemctl --user daemon-reload
+#   systemctl --user enable --now amisoria-bridge
+#   loginctl enable-linger $USER      # keep it running when you are logged out
+#   journalctl --user -u amisoria-bridge -f
+#
+# Then publish it next to the gateway (gateway.tailscale.mode must be "off",
+# see docs/en/compatibility.md → "Managed Tailscale Serve blocks /bridge"):
+#   tailscale serve --bg --https=443 http://127.0.0.1:18789
+#   tailscale serve --bg --https=443 --set-path=/bridge http://127.0.0.1:18790
+#
+# Contributed setup: Ubuntu-family host, OpenClaw 2026.10.4 (issue #1).
+
+[Unit]
+Description=Amisoria bridge (serves OpenClaw TTS clips to the phone)
+After=network-online.target
+
+[Service]
+ExecStart=/usr/bin/python3 %h/.amisoria/amisoria-bridge.py
+Restart=on-failure
+RestartSec=3
+# Uncomment to change the defaults (see the docstring in amisoria-bridge.py):
+#Environment=AMISORIA_BRIDGE_PORT=18790
+#Environment=AMISORIA_BRIDGE_BIND=127.0.0.1
+#Environment=AMISORIA_OPENCLAW_BIN=%h/.nvm/versions/node/v24.21.0/bin/openclaw
+#Environment=AMISORIA_BRIDGE_PRUNE_HOURS=24
+
+[Install]
+WantedBy=default.target

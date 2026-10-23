@@ -1,47 +1,106 @@
 #!/usr/bin/env python3
 """
-amisoria-bridge — companion HTTP service that runs ON the OpenClaw host (Mac mini).
+amisoria-bridge — companion HTTP service that runs ON the OpenClaw host.
 
 The gateway's tts.convert writes an mp3 and returns its PATH; it has no HTTP
 file endpoint. This bridge, running on the same machine, serves that file:
 
-    GET  /tts?path=/private/tmp/openclaw/tts-XXXX/voice-YYY.mp3  ->  audio/mpeg
+    GET  /tts?path=~/.openclaw/media/tool-speech-synthesis/voice-YYY.mp3  ->  audio/mpeg
 
 Admin endpoints (X-Auth header must equal the gateway token, kept in
-~/.bridge-secret):
+~/.bridge-secret; without that file they answer 401, which is expected):
 
     POST /model-auth  {"provider":"anthropic","key":"sk-..."}  -> installs the
          provider API key via `openclaw models auth paste-api-key` and restarts
-         the gateway (launchd respawns it).
+         the gateway so it reloads auth.
     GET  /balance  -> {"openrouter": <remaining USD>}
 
-Security: /tts only serves paths under /private/tmp/openclaw/ or ~/.openclaw/media/ (no ".."); admin
-endpoints are token-gated. Bind to the Tailscale interface or firewall port
-18790 to your tailnet.
+Configuration (environment variables; all optional):
 
-Install (launchd, see docs/install-mac-mini.md):
-    ~/.amisoria/amisoria-bridge.py + com.amisoria.bridge.plist
+    AMISORIA_BRIDGE_PORT         listen port            (default 18790)
+    AMISORIA_BRIDGE_BIND         bind address           (default 127.0.0.1 —
+                                 Tailscale Serve proxies from loopback, so
+                                 nothing else needs to reach the bridge)
+    AMISORIA_OPENCLAW_BIN        path to the openclaw CLI (default: the
+                                 OPENCLAW_BIN line below, then `which openclaw`)
+    AMISORIA_BRIDGE_PRUNE_HOURS  delete served TTS clips older than this many
+                                 hours (default 24; 0 disables). OpenClaw never
+                                 cleans ~/.openclaw/media/tool-speech-synthesis/
+                                 itself (≈1 MB per hour of conversation).
+
+Security: /tts only serves paths under /private/tmp/openclaw/ or
+~/.openclaw/media/ (no ".."); admin endpoints are token-gated.
+
+Install:
+    macOS   — launchd, written by setup-host.sh (com.amisoria.bridge.plist)
+    Linux   — systemd --user, see amisoria-bridge.service next to this file
 """
 import os
+import shutil
+import threading
+import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-import subprocess, urllib.parse, urllib.request, json, os, re
+import subprocess, urllib.parse, urllib.request, json, re
 
-# LOCAL edition: runs ON the gateway host (Mac mini). No SSH hop.
 # OpenClaw < 2026.9 wrote TTS files under /private/tmp/openclaw/; 2026.9.1+ writes
 # them under ~/.openclaw/media/tool-speech-synthesis/. Serve both, nothing else.
 ALLOWED_PREFIXES = (
     "/private/tmp/openclaw/",
     os.path.expanduser("~/.openclaw/media/"),
 )
-PORT = 18790
+TTS_DIR = os.path.expanduser("~/.openclaw/media/tool-speech-synthesis")
+PORT = int(os.environ.get("AMISORIA_BRIDGE_PORT", "18790"))
+BIND = os.environ.get("AMISORIA_BRIDGE_BIND", "127.0.0.1")
+PRUNE_HOURS = float(os.environ.get("AMISORIA_BRIDGE_PRUNE_HOURS", "24"))
 # Admin endpoints (/model-auth, /balance) require X-Auth == the gateway token
-# (a copy lives in ~/.bridge-secret on Mac A). /tts stays open as before.
+# (setup-host.sh copies it to ~/.bridge-secret). /tts stays open.
 SECRET_FILE = os.path.expanduser("~/.bridge-secret")
 KEYS_FILE = os.path.expanduser("~/.bridge-keys.json")   # provider -> key (balance queries)
 PROVIDERS = {"openai", "anthropic", "google", "openrouter"}
 
+# setup-host.sh rewrites the next line with the real path on macOS; on other
+# hosts set AMISORIA_OPENCLAW_BIN or leave it to `which openclaw`.
 OPENCLAW_BIN = os.path.expanduser("~/.nvm/versions/node/v24.18.0/bin/openclaw")
+if os.environ.get("AMISORIA_OPENCLAW_BIN"):
+    OPENCLAW_BIN = os.environ["AMISORIA_OPENCLAW_BIN"]
+elif not os.path.exists(OPENCLAW_BIN):
+    OPENCLAW_BIN = shutil.which("openclaw") or OPENCLAW_BIN
 GATEWAY_PGREP = "dist/index.js gateway"
+
+
+def restart_gateway(env):
+    """Ask OpenClaw to restart its gateway so it reloads auth. Fall back to
+    killing the process (launchd respawns it on macOS) only if the CLI refuses."""
+    try:
+        r = subprocess.run([OPENCLAW_BIN, "gateway", "restart"], capture_output=True, timeout=60, env=env)
+        if r.returncode == 0:
+            return "restart"
+    except (OSError, subprocess.TimeoutExpired):
+        pass
+    subprocess.run(["pkill", "-f", GATEWAY_PGREP], capture_output=True, timeout=30)
+    return "pkill"
+
+
+def prune_loop():
+    """Every hour, delete TTS clips older than PRUNE_HOURS. Only that folder."""
+    while True:
+        cutoff = time.time() - PRUNE_HOURS * 3600
+        removed = 0
+        try:
+            for name in os.listdir(TTS_DIR):
+                p = os.path.join(TTS_DIR, name)
+                try:
+                    if os.path.isfile(p) and os.path.getmtime(p) < cutoff:
+                        os.remove(p)
+                        removed += 1
+                except OSError:
+                    pass
+        except OSError:
+            pass
+        if removed:
+            print(f"[tts-bridge] pruned {removed} clip(s) older than {PRUNE_HOURS:g} h", flush=True)
+        time.sleep(3600)
+
 
 class Handler(BaseHTTPRequestHandler):
     def _authed(self):
@@ -84,8 +143,7 @@ class Handler(BaseHTTPRequestHandler):
         if r.returncode != 0:
             self._json(502, {"ok": False, "error": r.stderr.decode()[:150]})
             return
-        # gateway must reload auth → kill it; launchd respawns in seconds
-        subprocess.run(["pkill", "-f", GATEWAY_PGREP], capture_output=True, timeout=30)
+        how = restart_gateway(env)
         try:
             keys = json.load(open(KEYS_FILE)) if os.path.exists(KEYS_FILE) else {}
             keys[provider] = key
@@ -93,7 +151,7 @@ class Handler(BaseHTTPRequestHandler):
             os.chmod(KEYS_FILE, 0o600)
         except OSError:
             pass
-        self._json(200, {"ok": True})
+        self._json(200, {"ok": True, "restart": how})
 
     def do_GET(self):
         url = urllib.parse.urlparse(self.path)
@@ -114,7 +172,7 @@ class Handler(BaseHTTPRequestHandler):
         if url.path != "/tts":
             self.send_error(404)
             return
-        path = (urllib.parse.parse_qs(url.query).get("path") or [""])[0]
+        path = os.path.expanduser((urllib.parse.parse_qs(url.query).get("path") or [""])[0])
         if not path.startswith(ALLOWED_PREFIXES) or ".." in path:
             self.send_error(403)
             return
@@ -136,6 +194,9 @@ class Handler(BaseHTTPRequestHandler):
     def log_message(self, fmt, *args):
         print("[tts-bridge]", fmt % args, flush=True)
 
+
 if __name__ == "__main__":
-    print(f"[tts-bridge] listening on 0.0.0.0:{PORT}", flush=True)
-    ThreadingHTTPServer(("0.0.0.0", PORT), Handler).serve_forever()
+    if PRUNE_HOURS > 0:
+        threading.Thread(target=prune_loop, daemon=True).start()
+    print(f"[tts-bridge] listening on {BIND}:{PORT} (openclaw: {OPENCLAW_BIN}, prune: {PRUNE_HOURS:g} h)", flush=True)
+    ThreadingHTTPServer((BIND, PORT), Handler).serve_forever()

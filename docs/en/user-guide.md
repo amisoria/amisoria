@@ -78,6 +78,8 @@ Your OpenRouter balance shows here (other providers expose no balance API).
 | Ultra-cheap | DeepSeek (via OpenRouter) |
 | Offline / privacy | Local Qwen (see limits below) |
 
+**Speed tip:** if your model has a "thinking" / reasoning mode, turn it off for voice conversations (in OpenClaw's model settings on the host). A user measured a large drop in time-to-first-word with thinking off; for chat the extra reasoning rarely changes the answer. Keep it on for tasks where it matters.
+
 ---
 
 ## Keys

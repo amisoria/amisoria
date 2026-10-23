@@ -23,7 +23,7 @@ If a future release renames or removes one of those methods, the app shows a red
 
 ### Microsoft voice returns 403 (since 2026-10-12)
 
-Microsoft moved the Edge "Read Aloud" endpoint on 2026-10-12. OpenClaw up to **2026.10.2** bundles `node-edge-tts` 1.2.10, which still talks to the old host, so every `tts.convert` with the Microsoft provider fails with `Unexpected server response: 403`. In the app you hear the iPhone's built-in voice instead. Amisoria 1.4 read even English replies with a Chinese device voice in that case; **1.4.1 (live since 2026-10-13)** uses the right language for the fallback and shows a notice in the chat so you know the server voice failed.
+Microsoft moved the Edge "Read Aloud" endpoint on 2026-10-12. OpenClaw up to **2026.10.4** (10.4 confirmed by a Linux user in [issue #1](https://github.com/amisoria/amisoria/issues/1)) bundles `node-edge-tts` 1.2.10, which still talks to the old host, so every `tts.convert` with the Microsoft provider fails with `Unexpected server response: 403`. In the app you hear the iPhone's built-in voice instead. Amisoria 1.4 read even English replies with a Chinese device voice in that case; **1.4.1 (live since 2026-10-13)** uses the right language for the fallback and shows a notice in the chat so you know the server voice failed.
 
 Until an OpenClaw release ships a newer `node-edge-tts`, swap the bundled copy for 1.2.11 (new endpoint, same API). On the Mac:
 
@@ -35,13 +35,35 @@ rm -rf node_modules/node-edge-tts && mv package node_modules/node-edge-tts && rm
 openclaw gateway restart --force
 ```
 
-Verified on 2026-10-13 (OpenClaw 2026.9.8, zh-TW and en-US voices, 0.5–0.8 s per sentence). The next `npm i -g openclaw@…` overwrites the patch, so check the voice after upgrading; to undo, restore the backup folder and restart. If the voice list is empty afterwards, the gateway's own voice-list fetch (still on the old host) may be next to break — tell us in Issues.
+Verified on 2026-10-13 (OpenClaw 2026.9.8, zh-TW and en-US voices, 0.5–0.8 s per sentence) and on 2026.10.4 by a user (Linux, 453 conversions, p50 ≈ 0.5 s). The next `npm i -g openclaw@…` overwrites the patch, so check the voice after upgrading; to undo, restore the backup folder and restart. If the voice list is empty afterwards, the gateway's own voice-list fetch (still on the old host) may be next to break — tell us in Issues.
+
+### "speech provider microsoft is not registered"
+
+The Microsoft voice needs **two** switches: `tts.providers.microsoft.enabled` *and* `plugins.entries.microsoft.enabled`. With the plugin entry off, the gateway rejects the app's `tts.setProvider("microsoft")` with `Invalid provider`, every conversion then runs through whatever provider the gateway was left on (often ElevenLabs, "not configured"), and the app falls back to the device voice. `setup-host.sh` enables the plugin; on a manual install set it yourself and **fully restart** the gateway (a config hot-reload does not load the plugin). Amisoria 1.4.x only shows the rejected switch as a small note under Settings → Voice engine; 1.5 will show it in the chat.
+
+### Managed Tailscale Serve blocks `/bridge`
+
+If `gateway.tailscale.mode` is `"serve"` (OpenClaw's own docs recommend it), OpenClaw runs a *foreground* `tailscale serve` on port 443 and the bridge cannot be added: `tailscale serve --set-path=/bridge …` fails with `foreground listener already exists for port 443`. Without the bridge, `/bridge/tts?…` falls through to the gateway, which answers **HTTP 200 with the Control UI web page** — the app gets no audio, falls back to the device voice, and nothing on the phone says why. Amisoria needs the hand-managed route:
+
+```jsonc
+// openclaw.json
+"gateway": { "tailscale": { "mode": "off" }, "trustedProxies": ["127.0.0.1", "::1"] }
+```
+
+```bash
+# restart the gateway, then:
+tailscale serve --bg --https=443 http://127.0.0.1:18789
+tailscale serve --bg --https=443 --set-path=/bridge http://127.0.0.1:18790
+```
+
+**Gotcha:** changing `gateway.tailscale.mode` needs a gateway restart, and OpenClaw may **defer** that restart until running agent turns finish — a user waited about 30 minutes, and `openclaw gateway restart --force` did not skip the wait. Between the old route going down and the new one coming up, phones cannot connect. Do it when nothing is running. To check the route from the phone side: `curl -s -o /dev/null -w "%{content_type}" "https://<host>/bridge/tts?path=x"` should print `text/html` only when the bridge is *missing*; a live bridge answers 404 with no HTML.
 
 ## Status by OpenClaw version
 
 | OpenClaw | Status | Amisoria | Notes |
 |---|---|---|---|
-| **2026.9.8** | **Verified** | 1.4 – 1.4.3 | Verified on the Mac mini (Node 26, 2026-10-05): in-place upgrade from 9.6 (`npm i -g openclaw@2026.9.8` + `openclaw doctor --fix`), config stayed valid, API keys and the model allowlist survived; every gateway method the app calls answered; a 10+ turn hands-free conversation with server voice, lip-sync, barge-in and web search passed. **Requires Amisoria 1.4** for live streaming (9.7 changed the stream format, see below); on 1.3 replies only appear once complete. Writing a new API key from the app was not re-run on this version. |
+| 2026.10.4 | Works (user report) | 1.4.3 | Reported working on a **Linux** host with a manual install ([issue #1](https://github.com/amisoria/amisoria/issues/1), 2026-10-20): voice, lip-sync, barge-in, iPhone and iPad. Still bundles `node-edge-tts` 1.2.10 (Microsoft 403 — swap to 1.2.11 as above). Not run on our own host yet, so not marked verified. Everything the app calls answered. |
+| **2026.9.8** | **Verified** | 1.4 – 1.4.4 | Verified on the Mac mini (Node 26, 2026-10-05): in-place upgrade from 9.6 (`npm i -g openclaw@2026.9.8` + `openclaw doctor --fix`), config stayed valid, API keys and the model allowlist survived; every gateway method the app calls answered; a 10+ turn hands-free conversation with server voice, lip-sync, barge-in and web search passed. **Requires Amisoria 1.4** for live streaming (9.7 changed the stream format, see below); on 1.3 replies only appear once complete. Writing a new API key from the app was not re-run on this version. |
 | 2026.9.7 | Not tested | — | **Changes live reply streaming.** `agent` assistant events now carry only the new text (`data.delta`) instead of the full text so far; the protocol version is still 4. Amisoria 1.3 and earlier read the full text, so on 9.7+ a reply may not be shown and spoken until the model has finished writing it, and OpenClaw's own notes say older clients can lose reply text. Amisoria 1.4 reads both shapes and is verified on 2026.9.8 (above); 9.7 itself was not run. On Amisoria 1.3, stay on 2026.9.6. Also removes the Tasks/TaskFlow panels and APIs (unused by us); run `openclaw doctor --fix` after a manual upgrade. |
 | 2026.9.6 | Verified | 1.3 – 1.4 | Full flow passed on a fresh Mac mini (Node 26, 2026-09-27): text, server voice + lip-sync, mic, character switch, model switch, API-key write, 10-turn conversation. Retires `sessions.compaction.*` (unused by us); invalid config now points to `openclaw doctor --fix`. On a brand-new install the very first reply can take noticeably longer (the agent runs its bootstrap ritual and the Gateway may still be downloading the model catalog) — wait it out once. **Retires `agents.defaults.compaction.reserveTokensFloor`** and rejects it if present (config invalid → CLI refuses, API-key apply fails, Gateway won't restart); `setup-host.sh` from 2026-09-28 on prunes it automatically, older copies wrote it — run `openclaw doctor --fix` or re-run the script. OpenAI models now run through the codex plugin and the reply stream re-sends the completed text with `replace:true`; Amisoria 1.3 handles that, 1.2 shows and speaks such replies twice. |
 | 2026.9.5 | Not tested | — | Changelog reviewed; no changes to the surface above. Upgrade notes: 9.5 defers legacy pairing/session repairs to `openclaw doctor --fix` — run it once after upgrading if the Gateway reports pending repairs. |

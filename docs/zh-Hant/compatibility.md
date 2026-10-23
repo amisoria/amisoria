@@ -23,7 +23,7 @@ OpenClaw 一個月會出好幾版，Amisoria **不會**每一版都追。我們�
 
 ### Microsoft 語音回應 403（2026-10-12 起）
 
-Microsoft 在 2026-10-12 更換了 Edge「大聲朗讀」的端點。OpenClaw 到 **2026.10.2** 為止內建的 `node-edge-tts` 1.2.10 仍連舊主機，所以用 Microsoft 供應商的每一次 `tts.convert` 都失敗：`Unexpected server response: 403`。App 裡聽到的會變成 iPhone 內建語音。Amisoria 1.4 在這種情況下連英文回覆都用中文裝置語音念；**1.4.1（2026-10-13 上架）** 會用正確語言退回，並在對話中顯示提示讓你知道伺服器語音失敗了。
+Microsoft 在 2026-10-12 更換了 Edge「大聲朗讀」的端點。OpenClaw 到 **2026.10.4** 為止（10.4 由一位 Linux 使用者在 [issue #1](https://github.com/amisoria/amisoria/issues/1) 確認）內建的 `node-edge-tts` 1.2.10 仍連舊主機，所以用 Microsoft 供應商的每一次 `tts.convert` 都失敗：`Unexpected server response: 403`。App 裡聽到的會變成 iPhone 內建語音。Amisoria 1.4 在這種情況下連英文回覆都用中文裝置語音念；**1.4.1（2026-10-13 上架）** 會用正確語言退回，並在對話中顯示提示讓你知道伺服器語音失敗了。
 
 在 OpenClaw 推出含新版 `node-edge-tts` 的版本之前，可以把內建的那份換成 1.2.11（新端點、API 相同）。在 Mac 上：
 
@@ -35,13 +35,35 @@ rm -rf node_modules/node-edge-tts && mv package node_modules/node-edge-tts && rm
 openclaw gateway restart --force
 ```
 
-2026-10-13 在 OpenClaw 2026.9.8 上驗證（zh-TW 與 en-US 語音，每句 0.5–0.8 秒）。下一次 `npm i -g openclaw@…` 會把這個修補蓋掉，升級後請再試一次語音；要還原就把備份資料夾放回去再重啟。之後若語音清單變成空的，表示 Gateway 自己抓語音清單的那條路（仍連舊主機）也壞了，請到 Issues 告訴我們。
+2026-10-13 在 OpenClaw 2026.9.8 上驗證（zh-TW 與 en-US 語音，每句 0.5–0.8 秒）；另有使用者在 2026.10.4（Linux）上驗證（453 次合成，中位數約 0.5 秒）。下一次 `npm i -g openclaw@…` 會把這個修補蓋掉，升級後請再試一次語音；要還原就把備份資料夾放回去再重啟。之後若語音清單變成空的，表示 Gateway 自己抓語音清單的那條路（仍連舊主機）也壞了，請到 Issues 告訴我們。
+
+### 「speech provider microsoft is not registered」
+
+Microsoft 語音需要**兩個**開關：`tts.providers.microsoft.enabled` **和** `plugins.entries.microsoft.enabled`。外掛那個沒開的話，Gateway 會用 `Invalid provider` 拒絕 App 送的 `tts.setProvider("microsoft")`，之後每次合成都走 Gateway 當時停留的供應商（常常是 ElevenLabs，回「not configured」），App 就退回裝置語音。`setup-host.sh` 會開這個外掛；手動安裝請自己設定，並**完整重啟** Gateway（設定熱載入不會載入外掛）。Amisoria 1.4.x 只在「連線設定 → 語音引擎」下方用小字顯示切換被拒絕；1.5 會在對話裡提示。
+
+### Tailscale 託管模式會擋掉 `/bridge`
+
+若 `gateway.tailscale.mode` 是 `"serve"`（OpenClaw 官方文件建議的值），OpenClaw 會自己在 443 跑一個*前景* `tailscale serve`，bridge 就加不進去：`tailscale serve --set-path=/bridge …` 會回 `foreground listener already exists for port 443`。沒有 bridge 時，`/bridge/tts?…` 會落到 Gateway，Gateway 回 **HTTP 200 的 Control UI 網頁**，App 拿不到音檔、退回裝置語音，手機上看不出原因。Amisoria 需要手動管理的路由：
+
+```jsonc
+// openclaw.json
+"gateway": { "tailscale": { "mode": "off" }, "trustedProxies": ["127.0.0.1", "::1"] }
+```
+
+```bash
+# 重啟 Gateway 之後：
+tailscale serve --bg --https=443 http://127.0.0.1:18789
+tailscale serve --bg --https=443 --set-path=/bridge http://127.0.0.1:18790
+```
+
+**陷阱：**改 `gateway.tailscale.mode` 需要重啟 Gateway，而 OpenClaw 可能把重啟**延後**到進行中的代理回合結束——有使用者等了約 30 分鐘，`openclaw gateway restart --force` 也沒有跳過等待。舊路由拆掉、新路由還沒起來的期間，手機連不上。請在沒有任務進行時做。從手機端檢查路由：`curl -s -o /dev/null -w "%{content_type}" "https://<主機>/bridge/tts?path=x"` 印出 `text/html` 就表示 bridge *不在*；bridge 活著會回 404、沒有網頁。
 
 ## 各版本狀態
 
 | OpenClaw | 狀態 | Amisoria | 備註 |
 |---|---|---|---|
-| **2026.9.8** | **已驗證** | 1.4 – 1.4.3 | 在 Mac mini（Node 26）上驗證（2026-10-05）：從 9.6 原地升級（`npm i -g openclaw@2026.9.8` 加 `openclaw doctor --fix`），設定維持有效，API 金鑰與模型清單都保留；App 用到的每個 Gateway 方法都有回應；十多輪的免持對話（伺服器語音、對嘴、插話打斷、上網查詢）通過。**即時串流需要 Amisoria 1.4**（9.7 改了串流格式，見下一列）；用 1.3 的話回覆要整段寫完才會出現。從 App 寫入新 API 金鑰這個動作沒有在這個版本重跑。 |
+| 2026.10.4 | 可用（使用者回報） | 1.4.3 | 一位使用者在 **Linux** 主機上手動安裝後回報可用（[issue #1](https://github.com/amisoria/amisoria/issues/1)，2026-10-20）：語音、對嘴、插話、iPhone 與 iPad。仍內建 `node-edge-tts` 1.2.10（Microsoft 403，照上面換成 1.2.11）。我們自己的主機還沒跑過，所以不標已驗證。App 呼叫的方法都有回應。 |
+| **2026.9.8** | **已驗證** | 1.4 – 1.4.4 | 在 Mac mini（Node 26）上驗證（2026-10-05）：從 9.6 原地升級（`npm i -g openclaw@2026.9.8` 加 `openclaw doctor --fix`），設定維持有效，API 金鑰與模型清單都保留；App 用到的每個 Gateway 方法都有回應；十多輪的免持對話（伺服器語音、對嘴、插話打斷、上網查詢）通過。**即時串流需要 Amisoria 1.4**（9.7 改了串流格式，見下一列）；用 1.3 的話回覆要整段寫完才會出現。從 App 寫入新 API 金鑰這個動作沒有在這個版本重跑。 |
 | 2026.9.7 | 未測試 | — | **改了即時回覆的串流方式。**`agent` 的 assistant 事件現在只送新增的文字（`data.delta`），不再每次送到目前為止的完整文字；協定版本仍然是 4。Amisoria 1.3（含）以前讀的是完整文字，所以在 9.7 以上，回覆可能要等模型整段寫完才顯示、才開始念，OpenClaw 的更新紀錄也寫明舊客戶端可能漏掉回覆文字。Amisoria 1.4 兩種格式都讀，並已在 2026.9.8 驗證（見上一列）；9.7 本身沒有跑過。使用 Amisoria 1.3 的話請留在 2026.9.6。另外移除了 Tasks／TaskFlow 面板與 API（我們沒用）；手動升級後請執行 `openclaw doctor --fix`。 |
 | 2026.9.6 | 已驗證 | 1.3 – 1.4 | 在全新 Mac mini（Node 26）上完整跑過（2026-09-27）：文字、伺服器語音＋對嘴、麥克風、角色切換、模型切換、寫入 API 金鑰、10 句長對話。移除了 `sessions.compaction.*`（我們沒用）；設定錯誤現在會引導執行 `openclaw doctor --fix`。**全新安裝的第一句回覆會明顯比較慢**（代理要先跑開機儀式，Gateway 也可能還在下載模型目錄），多等一下就好，只有第一次。**退役了 `agents.defaults.compaction.reserveTokensFloor`**，檔案裡若還有會被拒絕（設定無效 → CLI 不執行、App 套用金鑰失敗、Gateway 重啟不了）；2026-09-28 之後的 `setup-host.sh` 會自動移除，舊版腳本會寫入它，請執行 `openclaw doctor --fix` 或重跑腳本。OpenAI 模型改走 codex 外掛，串流結束時會用 `replace:true` 把完整回覆再送一次；Amisoria 1.3 已處理，1.2 會把這種回覆顯示並念兩次。 |
 | 2026.9.5 | 未測試 | — | 已看過更新紀錄，沒有動到上述介面。升級注意：9.5 把舊的配對／對話資料修復改成要手動執行 `openclaw doctor --fix`，升級後若 Gateway 提示有待修復項目，跑一次即可。 |

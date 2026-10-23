@@ -126,13 +126,44 @@ app 的模型選單會出現「Local Qwen」。
 | `origin not allowed` | `gateway.controlUi.allowedOrigins` 缺 `https://<MagicDNS>`。重新執行 `setup-host.sh`,或手動加入後重啟 gateway。 |
 | `control ui requires device identity` | 你用的是舊版 app 或非 TLS 連線。請用 Port 443 + TLS 開。 |
 | `pairing required` 一直出現 | 還沒核准,或核准前 gateway 重啟了。`openclaw devices list` 取得新 ID 再 approve。 |
-| 連上了但**沒聲音**,且每句都變成女聲 | 伺服器語音取不到 → app 退回 iPhone 內建語音。檢查 bridge:`curl -s -o /dev/null -w "%{http_code}" https://<MagicDNS>/bridge/tts?path=x` 應回 `404`(服務活著);`000` 代表 bridge 掛了 → `launchctl kickstart -k gui/$(id -u)/com.amisoria.bridge`。 |
+| 連上了但**沒聲音**,且每句都變成女聲 | 伺服器語音取不到 → app 退回 iPhone 內建語音。檢查 bridge:`curl -s -o /dev/null -w "%{http_code}" https://<MagicDNS>/bridge/tts?path=x` 應回 `404`(服務活著);`000` 代表 bridge 掛了 → `launchctl kickstart -k gui/$(id -u)/com.amisoria.bridge`。若回 `200`,表示是 Gateway 在回應而不是 bridge(回的是網頁不是音檔):`gateway.tailscale.mode` 是 `"serve"`,見[相容性 → Tailscale 託管模式](compatibility.md#tailscale-託管模式會擋掉-bridge)。 |
+| 沒聲音,Gateway 記錄寫 `speech provider microsoft is not registered` 或 `Invalid provider` | `plugins.entries.microsoft.enabled` 沒開。設為 `true` 並完整重啟 Gateway(腳本會做)。 |
 | 模型回 `402` / `429` | 402 = OpenRouter 未儲值;429 = 免費配額用盡或該 key 無此模型權限(Google 免費層只有 Flash,沒有 Pro)。 |
 | 本地模型 `Auto-compaction could not recover` | OpenClaw 2026.9.1 以前 `agents.defaults.compaction.reserveTokensFloor` 預設太大(對 33k 視窗模型致命)，腳本在那些版本會設 6000。2026.9.6 起這個鍵已退役(改用內建預設)，腳本不會再寫入。也可在 app 按 ✏️ 開新對話。 |
 | 回覆變成「Audio reply」 | 伺服器端自動 TTS 開著。腳本已把 `tts.auto` 設為 off。 |
 | Mac mini 重開機後 app 連不上 | gateway 與 bridge 都是 launchd 服務會自動起來;Tailscale Serve 設定也會保留。若仍不行,重跑 `setup-host.sh`。 |
 
 完成!接著請看 [使用說明](user-guide.md)。
+
+## 手動安裝或既有安裝（Linux，或不想讓腳本動的 Mac）
+
+`setup-host.sh` 只支援 macOS（launchd、`sed -i ''`），但 Amisoria 本身不需要 Mac。有使用者在 Ubuntu 系主機上用 OpenClaw 2026.10.4 跑起來了（[issue #1](https://github.com/amisoria/amisoria/issues/1)）。腳本做的事全部列在這裡，可以自己照做：
+
+**1. `~/.openclaw/openclaw.json`**
+
+| 鍵 | 值 | 原因 |
+|---|---|---|
+| `gateway.bind` | loopback | Tailscale Serve 由 localhost 轉發 |
+| `gateway.tailscale.mode` | `"off"` | App 需要手動管理、含 `/bridge` 的 Serve 路由，見[相容性](compatibility.md#tailscale-託管模式會擋掉-bridge)。要完整重啟 Gateway，OpenClaw 可能把重啟延後到進行中的回合結束。 |
+| `gateway.trustedProxies` | `["127.0.0.1", "::1"]` | 否則連線被 `proxy_attribution_required` 拒絕 |
+| `gateway.controlUi.allowedOrigins` | 加入 `https://<你的 MagicDNS>` | 否則 `origin not allowed` |
+| `plugins.entries.<供應商>.enabled` | `microsoft` 與你用的每個模型供應商都設 `true` | **`microsoft` 就是伺服器語音**；沒開的話 App 的供應商切換會被拒絕，只聽得到裝置語音 |
+
+**2. `~/.openclaw/settings/tts.json`**：`tts.auto = "off"`（語音由 App 自己驅動，否則回覆會變成「Audio reply」）、`tts.provider = "microsoft"`。
+
+**3. 人格規則**：把 `host/workspace/AMISORIA-RULES.md` 接到 `~/.openclaw/workspace/AGENTS.md` 後面（腳本只做一次，以 `AMISORIA-RULES:BEGIN` 標記判斷）。沒有它，代理不知道自己有臉和聲音；見 [persona-prompt.md](persona-prompt.md)。
+
+**4. bridge**（`host/amisoria-bridge.py`）：複製到 `~/.amisoria/`，當服務跑——Linux 用 `host/amisoria-bridge.service`（`systemd --user`）。設定都是環境變數：`AMISORIA_BRIDGE_PORT`（18790）、`AMISORIA_BRIDGE_BIND`（127.0.0.1）、`AMISORIA_OPENCLAW_BIN`（預設用 `which openclaw`）、`AMISORIA_BRIDGE_PRUNE_HOURS`（24；bridge 會刪掉超過這個時數的音檔，因為 OpenClaw 從不清理 `~/.openclaw/media/tool-speech-synthesis/`）。管理端點（`/model-auth`、`/balance`）需要把 Gateway token 放在 `~/.bridge-secret`（權限 600）；沒有這個檔案會回 401，只是 App 內的金鑰編輯和餘額顯示不能用。
+
+**5. Tailscale Serve**，在 Gateway 以 `mode: "off"` 重啟之後：
+```bash
+tailscale serve --bg --https=443 http://127.0.0.1:18789
+tailscale serve --bg --https=443 --set-path=/bridge http://127.0.0.1:18790
+```
+
+**6. Microsoft 403**：OpenClaw 版本 ≤ 2026.10.4 的話，把 `node-edge-tts` 換成 1.2.11（[相容性](compatibility.md#microsoft-語音回應-4032026-10-12-起)）。
+
+**7. 手機端**：Host 填 MagicDNS 名稱、Port 443、TLS 開、Token 填 `gateway.auth.token`。用 `openclaw devices approve <id>` 核准一次。
 
 ## 讓主機保持清醒（必要）
 

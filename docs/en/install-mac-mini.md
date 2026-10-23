@@ -127,13 +127,44 @@ Then add the model to OpenClaw's roster (`~/.openclaw/openclaw.json` → `agents
 | `origin not allowed` | `gateway.controlUi.allowedOrigins` lacks `https://<MagicDNS>`. Re-run `setup-host.sh` or add it and restart the gateway. |
 | `control ui requires device identity` | Old app build or a non-TLS connection. Use port 443 with TLS on. |
 | `pairing required` keeps appearing | Not approved yet, or the gateway restarted before approval. `openclaw devices list` → approve the new id. |
-| Connected but **no voice**, every reply female | Server voice unreachable → app fell back to iPhone's built-in voice. Check the bridge: `curl -s -o /dev/null -w "%{http_code}" https://<MagicDNS>/bridge/tts?path=x` should print `404` (alive); `000` means it's down → `launchctl kickstart -k gui/$(id -u)/com.amisoria.bridge`. |
+| Connected but **no voice**, every reply female | Server voice unreachable → app fell back to iPhone's built-in voice. Check the bridge: `curl -s -o /dev/null -w "%{http_code}" https://<MagicDNS>/bridge/tts?path=x` should print `404` (alive); `000` means it's down → `launchctl kickstart -k gui/$(id -u)/com.amisoria.bridge`. If it prints `200`, the gateway is answering instead of the bridge (a web page, not audio): `gateway.tailscale.mode` is `"serve"` — see [compatibility → Managed Tailscale Serve](compatibility.md#managed-tailscale-serve-blocks-bridge). |
+| No voice, gateway log says `speech provider microsoft is not registered` or `Invalid provider` | `plugins.entries.microsoft.enabled` is off. Set it to `true` and fully restart the gateway (the script does this). |
 | Model returns `402` / `429` | 402 = OpenRouter has no credits; 429 = free quota exhausted or the key lacks that model (Google's free tier has Flash only, no Pro). |
 | Local model: `Auto-compaction could not recover` | On OpenClaw ≤ 2026.9.1 `agents.defaults.compaction.reserveTokensFloor` was too large for 33k-context models; the script sets 6000 there. 2026.9.6 retired the key (built-in defaults apply) and the script leaves it out. You can also tap ✏️ New conversation in the app. |
 | Replies show "Audio reply" | Server-side auto-TTS is on. The script sets `tts.auto` to off. |
 | App can't connect after a Mac mini reboot | Gateway and bridge are launchd services and come back on their own; Tailscale Serve config persists. If not, re-run `setup-host.sh`. |
 
 Done — next, read the [User Guide](user-guide.md).
+
+## Manual or existing install (Linux, or a Mac you don't want the script to touch)
+
+`setup-host.sh` is macOS-only (launchd, `sed -i ''`), but nothing in Amisoria needs a Mac. One user runs it on an Ubuntu-family host with OpenClaw 2026.10.4 ([issue #1](https://github.com/amisoria/amisoria/issues/1)). This is the complete list of what the script does, so you can do it by hand:
+
+**1. `~/.openclaw/openclaw.json`**
+
+| Key | Value | Why |
+|---|---|---|
+| `gateway.bind` | loopback | Tailscale Serve proxies from localhost |
+| `gateway.tailscale.mode` | `"off"` | the app needs the hand-managed Serve route with `/bridge`; see [compatibility](compatibility.md#managed-tailscale-serve-blocks-bridge). Needs a full gateway restart, which OpenClaw may defer until running turns finish. |
+| `gateway.trustedProxies` | `["127.0.0.1", "::1"]` | otherwise connections are rejected with `proxy_attribution_required` |
+| `gateway.controlUi.allowedOrigins` | add `https://<your-MagicDNS>` | otherwise `origin not allowed` |
+| `plugins.entries.<provider>.enabled` | `true` for `microsoft` and each model provider you use | **`microsoft` is the server voice**; without it the app's provider switch is rejected and you only hear the device voice |
+
+**2. `~/.openclaw/settings/tts.json`**: `tts.auto = "off"` (the app drives speech itself; otherwise replies show as "Audio reply"), `tts.provider = "microsoft"`.
+
+**3. Persona rules**: append `host/workspace/AMISORIA-RULES.md` to `~/.openclaw/workspace/AGENTS.md` (the script does this once, guarded by the `AMISORIA-RULES:BEGIN` marker). Without it the agent does not know it has a face and a voice; see [persona-prompt.md](persona-prompt.md).
+
+**4. The bridge** (`host/amisoria-bridge.py`): copy it to `~/.amisoria/`, run it as a service — `host/amisoria-bridge.service` is a `systemd --user` unit for Linux. Settings are environment variables: `AMISORIA_BRIDGE_PORT` (18790), `AMISORIA_BRIDGE_BIND` (127.0.0.1), `AMISORIA_OPENCLAW_BIN` (defaults to `which openclaw`), `AMISORIA_BRIDGE_PRUNE_HOURS` (24; the bridge deletes served clips older than this because OpenClaw never cleans `~/.openclaw/media/tool-speech-synthesis/`). The admin endpoints (`/model-auth`, `/balance`) need the gateway token in `~/.bridge-secret` (mode 600); without the file they answer 401, which only disables the in-app key editor and balance display.
+
+**5. Tailscale Serve**, after the gateway restarted with `mode: "off"`:
+```bash
+tailscale serve --bg --https=443 http://127.0.0.1:18789
+tailscale serve --bg --https=443 --set-path=/bridge http://127.0.0.1:18790
+```
+
+**6. Microsoft 403**: if the OpenClaw version is ≤ 2026.10.4, swap `node-edge-tts` to 1.2.11 ([compatibility](compatibility.md#microsoft-voice-returns-403-since-2026-10-12)).
+
+**7. On the phone**: host = your MagicDNS name, port 443, TLS on, token = `gateway.auth.token`. Approve the device once with `openclaw devices approve <id>`.
 
 ## Keep the host awake (required)
 
