@@ -12,7 +12,7 @@ OpenClaw 一個月會出好幾版，Amisoria **不會**每一版都追。我們�
 |---|---|
 | WebSocket 協定 | `4`（連線握手時檢查） |
 | 連線參數 | control-ui 型客戶端、必須帶 `client.buildId`（2026.9.1 起）、Ed25519 裝置身分 v2、Gateway token |
-| RPC 方法 | `chat.startup`、`chat.send`、`sessions.messages.subscribe`、`sessions.patch`、`models.list`、`tts.status`、`tts.providers`、`tts.setProvider`、`tts.convert`、`config.get`、`config.patch`、`health` |
+| RPC 方法 | `chat.startup`、`chat.send`、`sessions.messages.subscribe`、`sessions.patch`、`models.list`、`tts.status`、`tts.providers`、`tts.convert`（Amisoria 1.5 起每次請求帶 `provider` 與 `voiceId`；1.4.x 改在連線時呼叫 `tts.setProvider`）、`config.get`、`config.patch`、`health` |
 | 串流事件 | `session.message`（助理的串流內容可能在回覆中途被整段改寫，App 已處理） |
 | 檔案（透過 bridge） | TTS 輸出在 `~/.openclaw/media/`（2026.9.1 起）或 `/private/tmp/openclaw/`（更早版本） |
 | 主機端 | 用 `openclaw devices approve` 配對；走 Tailscale Serve 時需要 `gateway.tailscale.mode: "off"` 與 `gateway.trustedProxies` |
@@ -39,7 +39,7 @@ openclaw gateway restart --force
 
 ### 「speech provider microsoft is not registered」
 
-Microsoft 語音需要**兩個**開關：`tts.providers.microsoft.enabled` **和** `plugins.entries.microsoft.enabled`。外掛那個沒開的話，Gateway 會用 `Invalid provider` 拒絕 App 送的 `tts.setProvider("microsoft")`，之後每次合成都走 Gateway 當時停留的供應商（常常是 ElevenLabs，回「not configured」），App 就退回裝置語音。`setup-host.sh` 會開這個外掛；手動安裝請自己設定，並**完整重啟** Gateway（設定熱載入不會載入外掛）。Amisoria 1.4.x 只在「連線設定 → 語音引擎」下方用小字顯示切換被拒絕；1.5 會在對話裡提示。
+Microsoft 語音需要**兩個**開關：`tts.providers.microsoft.enabled` **和** `plugins.entries.microsoft.enabled`。外掛那個沒開的話，Gateway 會用 `Invalid provider` 拒絕 App 送的 `tts.setProvider("microsoft")`，之後每次合成都走 Gateway 當時停留的供應商（常常是 ElevenLabs，回「not configured」），App 就退回裝置語音。`setup-host.sh` 會開這個外掛；手動安裝請自己設定，並**完整重啟** Gateway（設定熱載入不會載入外掛）。Amisoria 1.4.x 只在「連線設定 → 語音引擎」下方用小字顯示切換被拒絕。1.5 不再改動主機的供應商——供應商隨每次請求送出——並在對話裡顯示 Gateway 的原因，加一行指向這個設定的提示。
 
 ### Tailscale 託管模式會擋掉 `/bridge`
 

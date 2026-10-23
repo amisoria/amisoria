@@ -12,7 +12,7 @@ OpenClaw ships several releases a month. Amisoria does **not** chase every one o
 |---|---|
 | WebSocket protocol | `4` (checked in the `connect` handshake) |
 | Connect params | control-ui style client, `client.buildId` present (required since 2026.9.1), Ed25519 device identity v2, gateway token |
-| RPC methods | `chat.startup`, `chat.send`, `sessions.messages.subscribe`, `sessions.patch`, `models.list`, `tts.status`, `tts.providers`, `tts.setProvider`, `tts.convert`, `config.get`, `config.patch`, `health` |
+| RPC methods | `chat.startup`, `chat.send`, `sessions.messages.subscribe`, `sessions.patch`, `models.list`, `tts.status`, `tts.providers`, `tts.convert` (with `provider` and `voiceId` per request from Amisoria 1.5; 1.4.x used `tts.setProvider` on connect instead), `config.get`, `config.patch`, `health` |
 | Streamed events | `session.message` (assistant deltas may be rewritten mid-run; the app handles that) |
 | Files (via the bridge) | TTS output under `~/.openclaw/media/` (2026.9.1+) or `/private/tmp/openclaw/` (older) |
 | Host | `openclaw devices approve` for pairing; `gateway.tailscale.mode: "off"` and `gateway.trustedProxies` when behind Tailscale Serve |
@@ -39,7 +39,7 @@ Verified on 2026-10-13 (OpenClaw 2026.9.8, zh-TW and en-US voices, 0.5–0.8 s p
 
 ### "speech provider microsoft is not registered"
 
-The Microsoft voice needs **two** switches: `tts.providers.microsoft.enabled` *and* `plugins.entries.microsoft.enabled`. With the plugin entry off, the gateway rejects the app's `tts.setProvider("microsoft")` with `Invalid provider`, every conversion then runs through whatever provider the gateway was left on (often ElevenLabs, "not configured"), and the app falls back to the device voice. `setup-host.sh` enables the plugin; on a manual install set it yourself and **fully restart** the gateway (a config hot-reload does not load the plugin). Amisoria 1.4.x only shows the rejected switch as a small note under Settings → Voice engine; 1.5 will show it in the chat.
+The Microsoft voice needs **two** switches: `tts.providers.microsoft.enabled` *and* `plugins.entries.microsoft.enabled`. With the plugin entry off, the gateway rejects the app's `tts.setProvider("microsoft")` with `Invalid provider`, every conversion then runs through whatever provider the gateway was left on (often ElevenLabs, "not configured"), and the app falls back to the device voice. `setup-host.sh` enables the plugin; on a manual install set it yourself and **fully restart** the gateway (a config hot-reload does not load the plugin). Amisoria 1.4.x only shows the rejected switch as a small note under Settings → Voice engine. 1.5 no longer switches the host at all — the provider travels with each request — and shows the gateway's reason in the chat with a hint pointing at this setting.
 
 ### Managed Tailscale Serve blocks `/bridge`
 

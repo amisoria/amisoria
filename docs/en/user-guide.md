@@ -49,7 +49,21 @@ Settings → Voice → **Natural conversation (hands-free)**. The mic button bec
 3. The mic pauses while Iris answers (she never hears herself), then reopens.
 4. Tap the mic again → off.
 
-Great for talking while doing something else. Turn-taking only for now; interrupting her mid-sentence is planned.
+Great for talking while doing something else. With **Barge-in** (Settings → Voice, available since 1.4) you can also cut her off mid-sentence: just start talking while she speaks.
+
+---
+
+## Voice engine
+
+Settings → Voice → **Voice engine** (Amisoria 1.5 and later; 1.4.x offers Microsoft and ElevenLabs only):
+
+| Choice | What it means |
+|---|---|
+| **Microsoft (free)** | Neural voices synthesized on your gateway, no key needed. The default; the four characters each have their own voice in 20 languages. |
+| **Gateway default** | Whatever TTS provider your gateway has active. This is how you use a **local voice** such as Piper or Kokoro: point OpenClaw's `openai` TTS provider at your local server, make it the gateway's provider, and pick this. The voice and model follow the host's settings; lip-sync works from the returned audio. |
+| Google / OpenAI / OpenRouter / xAI / … | Every provider your gateway reports (`tts.providers`), marked "not set up" until the host has its key. The voice is the one configured on the host. |
+
+The choice is sent with every request; the app never changes the host's own preference. If synthesis fails, the reply is read by the iPhone's built-in voice and the chat shows the gateway's reason plus a hint when it is a known one (Microsoft endpoint moved, Microsoft plugin disabled, provider has no key). The built-in voice has no male Chinese option on iOS, so Lucas sounds female in Chinese until the server voice is back, and the character's lips don't move for built-in speech.
 
 ---
 
