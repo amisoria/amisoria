@@ -51,6 +51,8 @@ Settings → Voice → **Natural conversation (hands-free)**. The mic button bec
 
 Great for talking while doing something else. With **Barge-in** (Settings → Voice, available since 1.4) you can also cut her off mid-sentence: just start talking while she speaks.
 
+**Bluetooth headsets and car audio** (1.5): while hands-free is on, a headset with a microphone is used for both listening and speaking, in call quality (iOS switches it to the HFP profile); without hands-free, playback uses the high-quality A2DP route. The chat shows a 🎧 line whenever the audio route changes. Take the earbuds out mid-reply and she stops; the rest of the reply appears as text instead of coming out of the speaker. (Up to 1.4.4, a headset only worked without barge-in — with barge-in on, her voice went to the phone's speaker.)
+
 ---
 
 ## Voice engine
