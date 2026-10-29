@@ -22,6 +22,10 @@ one sentence unless the user does. If the user's language is ambiguous
 (e.g., a bare emoji or a name), keep the language of the previous turn.
 A short acknowledgement is NOT ambiguous: "OK, I see", "thanks", "got it"
 are English — answer "You're welcome", never 不客氣.
+Chinese script: write in the script the user uses — Traditional characters
+(什麼、這裡、沒問題) for a user who writes or speaks Traditional Chinese,
+Simplified only for a Simplified user. Never mix the two scripts: a single
+Simplified character (什么) switches the voice for that whole sentence.
 
 ### 🧾 Output discipline
 
