@@ -23,7 +23,7 @@ OpenClaw 一個月會出好幾版，Amisoria **不會**每一版都追。我們�
 
 ### Microsoft 語音回應 403（2026-10-12 起）
 
-Microsoft 在 2026-10-12 更換了 Edge「大聲朗讀」的端點。OpenClaw 到 **2026.10.4** 為止（10.4 由一位 Linux 使用者在 [issue #1](https://github.com/amisoria/amisoria/issues/1) 確認）內建的 `node-edge-tts` 1.2.10 仍連舊主機，所以用 Microsoft 供應商的每一次 `tts.convert` 都失敗：`Unexpected server response: 403`。App 裡聽到的會變成 iPhone 內建語音。Amisoria 1.4 在這種情況下連英文回覆都用中文裝置語音念；**1.4.1（2026-10-13 上架）** 會用正確語言退回，並在對話中顯示提示讓你知道伺服器語音失敗了。
+Microsoft 在 2026-10-12 更換了 Edge「大聲朗讀」的端點。OpenClaw 到 **2026.10.9** 為止（目前每一版都是；10.4 由一位 Linux 使用者在 [issue #1](https://github.com/amisoria/amisoria/issues/1) 確認）內建的 `node-edge-tts` 1.2.10 仍連舊主機，所以用 Microsoft 供應商的每一次 `tts.convert` 都失敗：`Unexpected server response: 403`。App 裡聽到的會變成 iPhone 內建語音。Amisoria 1.4 在這種情況下連英文回覆都用中文裝置語音念；**1.4.1（2026-10-13 上架）** 會用正確語言退回，並在對話中顯示提示讓你知道伺服器語音失敗了。
 
 在 OpenClaw 推出含新版 `node-edge-tts` 的版本之前，可以把內建的那份換成 1.2.11（新端點、API 相同）。在 Mac 上：
 
@@ -35,7 +35,7 @@ rm -rf node_modules/node-edge-tts && mv package node_modules/node-edge-tts && rm
 openclaw gateway restart --force
 ```
 
-2026-10-13 在 OpenClaw 2026.9.8 上驗證（zh-TW 與 en-US 語音，每句 0.5–0.8 秒）；另有使用者在 2026.10.4（Linux）上驗證（453 次合成，中位數約 0.5 秒）。下一次 `npm i -g openclaw@…` 會把這個修補蓋掉，升級後請再試一次語音；要還原就把備份資料夾放回去再重啟。之後若語音清單變成空的，表示 Gateway 自己抓語音清單的那條路（仍連舊主機）也壞了，請到 Issues 告訴我們。
+2026-10-13 在 OpenClaw 2026.9.8 上驗證（zh-TW 與 en-US 語音，每句 0.5–0.8 秒），2026-10-31 在 2026.10.9 上再次驗證；另有使用者在 2026.10.4（Linux）上驗證（453 次合成，中位數約 0.5 秒）。下一次 `npm i -g openclaw@…` 會把這個修補蓋掉，升級後請再試一次語音；要還原就把備份資料夾放回去再重啟。之後若語音清單變成空的，表示 Gateway 自己抓語音清單的那條路（仍連舊主機）也壞了，請到 Issues 告訴我們。
 
 ### 「speech provider microsoft is not registered」
 
@@ -62,7 +62,8 @@ tailscale serve --bg --https=443 --set-path=/bridge http://127.0.0.1:18790
 
 | OpenClaw | 狀態 | Amisoria | 備註 |
 |---|---|---|---|
-| 2026.10.6 | 未測試 | — | 2026-10-24 的最新版。只在 npm 上查過：**仍內建 `node-edge-tts` 1.2.10**，升級後還是要照上面換成 1.2.11（升級會蓋掉之前換好的，要重做）。更新說明尚未對照上面的介面檢查；Amisoria 1.5.1 已於 2026-10-31 上架，接下來就在我們的主機測這一版。 |
+| **2026.10.9** | **已驗證** | 1.5.1 | 2026-10-31 在 Mac mini 上驗證（從 9.8 原地升級，Amisoria 1.5.1）：App 呼叫的每個方法都有回應，Microsoft 語音的 `tts.convert` 與經 Tailscale Serve 的 bridge 取檔都通過。**需要 Node 24.22.1 以上或 26.12.1 以上**（2026.10.6 起，因應 2026 年 10 月的 Node 安全性更新；舊 Node 下 gateway 會拒絕啟動）：`nvm install 26 && nvm alias default 26`，在新 Node 下重新安裝 OpenClaw（全域套件是跟著 Node 版本走的），再 `openclaw gateway install --force` 讓 launchd 服務改用新的 Node——其他寫死舊 Node 路徑的東西也要改（我們的 bridge LaunchAgent 就是）。**仍內建 `node-edge-tts` 1.2.10**，升級後要重做上面的 1.2.11 替換。`tts.convert` 多回傳一個 `voiceCompatible` 欄位（App 不使用）。`plugins.entries`、`gateway.tailscale.mode`、`trustedProxies` 與裝置配對都在升級後保留。App 內對 10.9 的綠燈要等下一版 Amisoria；1.5.1 顯示橘燈、方法齊全。 |
+| 2026.10.6 – 2026.10.8 | 未測試 | — | 維護版（更新／復原流程、相依套件安全性修補）；更新說明已對照上面的介面檢查，沒有動到。10.6 開始要求新版 Node、並為慢速的雲端語音合成加上逾時；10.8 讓 Tailscale Serve 在 tailscaled 重啟後能恢復。已被 10.9 取代。 |
 | 2026.10.4 | 可用（使用者回報） | 1.4.3 – 1.5 | 一位使用者在 **Linux** 主機上手動安裝後回報可用（[issue #1](https://github.com/amisoria/amisoria/issues/1)，2026-10-20）：語音、對嘴、插話、iPhone 與 iPad。同一位使用者後來在這台主機上跑 Amisoria 1.5（TestFlight build 13、14，與上架版相同）：AirPods 三種模式、「Gateway 預設」接本地 Piper（2026-10-26）。仍內建 `node-edge-tts` 1.2.10（Microsoft 403，照上面換成 1.2.11）。我們自己的主機還沒跑過，所以不標已驗證。App 呼叫的方法都有回應。 |
 | **2026.9.8** | **已驗證** | 1.4 – 1.5.1 | Amisoria 1.5 與 1.5.1 都是在這個版本上開發與實機測試的（1.5：2026-10-23 ～ 10-27，供應商選單、每次請求帶 `provider`、兩句同時合成、藍牙耳機；1.5.1：2026-10-28 ～ 10-30，插話與重連修正，中文三輪、英文十句）。在 Mac mini（Node 26）上驗證（2026-10-05）：從 9.6 原地升級（`npm i -g openclaw@2026.9.8` 加 `openclaw doctor --fix`），設定維持有效，API 金鑰與模型清單都保留；App 用到的每個 Gateway 方法都有回應；十多輪的免持對話（伺服器語音、對嘴、插話打斷、上網查詢）通過。**即時串流需要 Amisoria 1.4**（9.7 改了串流格式，見下一列）；用 1.3 的話回覆要整段寫完才會出現。從 App 寫入新 API 金鑰這個動作沒有在這個版本重跑。 |
 | 2026.9.7 | 未測試 | — | **改了即時回覆的串流方式。**`agent` 的 assistant 事件現在只送新增的文字（`data.delta`），不再每次送到目前為止的完整文字；協定版本仍然是 4。Amisoria 1.3（含）以前讀的是完整文字，所以在 9.7 以上，回覆可能要等模型整段寫完才顯示、才開始念，OpenClaw 的更新紀錄也寫明舊客戶端可能漏掉回覆文字。Amisoria 1.4 兩種格式都讀，並已在 2026.9.8 驗證（見上一列）；9.7 本身沒有跑過。使用 Amisoria 1.3 的話請留在 2026.9.6。另外移除了 Tasks／TaskFlow 面板與 API（我們沒用）；手動升級後請執行 `openclaw doctor --fix`。 |
