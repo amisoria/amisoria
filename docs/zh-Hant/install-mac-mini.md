@@ -90,14 +90,14 @@ bash setup-host.sh
    - Port:`443`
    - 使用 TLS:**開**
    - 金鑰 → Gateway Token:腳本印出的 token
-3. 回到聊天頁按「**連線**」。第一次會出現 🔐 配對訊息,內含一組 request ID。
+3. 回到聊天頁按「**連線**」。第一次會顯示「等待主機核准…」(紫點),並印一行 🔐,裡面就是要在主機輸入的完整指令(含 request ID)。設定 → Gateway 也會顯示這條指令並附複製鍵(用 Universal Clipboard 可直接貼到 Mac)。Amisoria 1.5.1 以前的版本這一步看起來像連續的連線錯誤,其實是同一個配對步驟。
 4. 回到 Mac mini 終端機核准這支手機(**只需做一次**):
    ```bash
    openclaw devices list              # 看到 Pending 的 request id
    openclaw devices approve <request-id>
    ```
-   > 注意:待核准清單會在 gateway 重啟時清空,看到 ID 就盡快核准。
-5. 再按一次「連線」→ 綠燈「已連線」。跟 Iris 打個招呼吧。
+   > 注意:待核准清單會在 gateway 重啟時清空,看到 ID 就盡快核准。若真的重啟了,App 會印一行新的 🔐 與新的 ID。
+5. 約 5 秒內 App 會自己連上 →「✅ 主機已核准這支手機。」接著綠燈「已連線」(1.5.1 以前要再按一次「連線」)。跟 Iris 打個招呼吧。
 
 ---
 
@@ -125,7 +125,8 @@ app 的模型選單會出現「Local Qwen」。
 |---|---|
 | `origin not allowed` | `gateway.controlUi.allowedOrigins` 缺 `https://<MagicDNS>`。重新執行 `setup-host.sh`,或手動加入後重啟 gateway。 |
 | `control ui requires device identity` | 你用的是舊版 app 或非 TLS 連線。請用 Port 443 + TLS 開。 |
-| `pairing required` 一直出現 | 還沒核准,或核准前 gateway 重啟了。`openclaw devices list` 取得新 ID 再 approve。 |
+| 「等待主機核准…」一直不結束(1.6 以前則是 `pairing required` 一直出現) | 還沒核准,或核准前 gateway 重啟了。`openclaw devices list` 取得 ID(以 App 最新一行 🔐 為準)再 approve。 |
+| 突然冒出一句英文 `💾 Learned: created …  Say "undo" to revert` | OpenClaw 2026.10.9 起的 Skill Workshop 在背景檢討對話、寫入「學到的 skill」。Amisoria 1.6 會把它顯示成灰色狀態行而不是念出來。想在主機關掉這個功能:`openclaw config set skills.workshop.autonomous.mode off`(不用重啟)。 |
 | 連上了但**沒聲音**,且每句都變成女聲 | 伺服器語音取不到 → app 退回 iPhone 內建語音。檢查 bridge:`curl -s -o /dev/null -w "%{http_code}" https://<MagicDNS>/bridge/tts?path=x` 應回 `404`(服務活著);`000` 代表 bridge 掛了 → `launchctl kickstart -k gui/$(id -u)/com.amisoria.bridge`。若回 `200`,表示是 Gateway 在回應而不是 bridge(回的是網頁不是音檔):`gateway.tailscale.mode` 是 `"serve"`,見[相容性 → Tailscale 託管模式](compatibility.md#tailscale-託管模式會擋掉-bridge)。 |
 | 沒聲音,Gateway 記錄寫 `speech provider microsoft is not registered` 或 `Invalid provider` | `plugins.entries.microsoft.enabled` 沒開。設為 `true` 並完整重啟 Gateway(腳本會做)。 |
 | 模型回 `402` / `429` | 402 = OpenRouter 未儲值;429 = 免費配額用盡或該 key 無此模型權限(Google 免費層只有 Flash,沒有 Pro)。 |

@@ -90,14 +90,14 @@ It will:
    - Port: `443`
    - Use TLS: **on**
    - Keys → Gateway Token: the token the script printed
-3. Back in chat, tap **Connect**. The first time you'll see a 🔐 pairing message with a request ID.
+3. Back in chat, tap **Connect**. The first time, the app shows "Waiting for host approval…" (purple dot) and one 🔐 line with the exact command to run, including the request ID. Settings → Gateway also shows the command with a copy button (Universal Clipboard carries it to the Mac). On Amisoria 1.5.1 and earlier this looked like repeated connection errors instead — that is the same pairing step.
 4. On the Mac mini, approve this phone (**once**):
    ```bash
    openclaw devices list              # shows the pending request id
    openclaw devices approve <request-id>
    ```
-   > The pending list is cleared whenever the gateway restarts — approve promptly.
-5. Tap **Connect** again → green "Connected". Say hi to Iris.
+   > The pending list is cleared whenever the gateway restarts — approve promptly. If it did restart, the app prints a new 🔐 line with the new ID.
+5. Within about 5 seconds the app connects by itself → "✅ The host approved this phone." and the green "Connected" (on 1.5.1 and earlier, tap **Connect** again). Say hi to Iris.
 
 ---
 
@@ -126,7 +126,8 @@ Then add the model to OpenClaw's roster (`~/.openclaw/openclaw.json` → `agents
 |---|---|
 | `origin not allowed` | `gateway.controlUi.allowedOrigins` lacks `https://<MagicDNS>`. Re-run `setup-host.sh` or add it and restart the gateway. |
 | `control ui requires device identity` | Old app build or a non-TLS connection. Use port 443 with TLS on. |
-| `pairing required` keeps appearing | Not approved yet, or the gateway restarted before approval. `openclaw devices list` → approve the new id. |
+| "Waiting for host approval…" never ends (or, before 1.6, `pairing required` keeps appearing) | Not approved yet, or the gateway restarted before approval. `openclaw devices list` → approve the id shown in the app's latest 🔐 line. |
+| A reply in English like `💾 Learned: created …  Say "undo" to revert` | OpenClaw 2026.10.9+'s Skill Workshop reviewing the conversation in the background and writing a "learned skill". Amisoria 1.6 shows it as a grey status line instead of reading it aloud. To turn the feature off on the host: `openclaw config set skills.workshop.autonomous.mode off` (no restart needed). |
 | Connected but **no voice**, every reply female | Server voice unreachable → app fell back to iPhone's built-in voice. Check the bridge: `curl -s -o /dev/null -w "%{http_code}" https://<MagicDNS>/bridge/tts?path=x` should print `404` (alive); `000` means it's down → `launchctl kickstart -k gui/$(id -u)/com.amisoria.bridge`. If it prints `200`, the gateway is answering instead of the bridge (a web page, not audio): `gateway.tailscale.mode` is `"serve"` — see [compatibility → Managed Tailscale Serve](compatibility.md#managed-tailscale-serve-blocks-bridge). |
 | No voice, gateway log says `speech provider microsoft is not registered` or `Invalid provider` | `plugins.entries.microsoft.enabled` is off. Set it to `true` and fully restart the gateway (the script does this). |
 | Model returns `402` / `429` | 402 = OpenRouter has no credits; 429 = free quota exhausted or the key lacks that model (Google's free tier has Flash only, no Pro). |

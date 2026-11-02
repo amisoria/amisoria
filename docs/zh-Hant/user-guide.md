@@ -98,6 +98,23 @@ OpenRouter 餘額會顯示在這裡(其他家官方不提供餘額查詢)。
 
 ---
 
+## Agent(1.6)
+
+**Agent** 是你 OpenClaw 主機上設定的對話角色:各有自己的人設檔、模型與對話歷史。多數主機只有一個(`main`),App 就用它。主機上有多個時,**設定 → Gateway → Agent** 會列出名稱;選一個,聊天就切到那個 agent 自己的對話(對話裡會出現一行「🎭 已切換 agent」,選到非預設 agent 時狀態列也會顯示它的名字)。選擇會記在手機上。
+
+最常見的用途是建一個**語音專用 agent**:人設短、不掛工具、用快一點的模型,第一句出聲會比帶著長工作區和整套工具的 agent 快。在主機上:
+
+```bash
+openclaw agents add voice --model openai/gpt-5.4-mini --workspace ~/.openclaw/workspace-voice --non-interactive
+openclaw agents set-identity --agent voice --name "Iris Voice" --emoji "🎙️"
+```
+
+Gateway 不用重啟就會載入;App 重新連線(或重開設定頁)就看得到新名字。`openclaw agents add` 會在工作區放 OpenClaw 的通用範本檔,請把你的 `AGENTS.md` / `SOUL.md` / `IDENTITY.md`(見 [persona-prompt.md](persona-prompt.md))複製進去,否則新 agent 的回覆會很素、也不知道自己是 Iris。
+
+之後若主機上刪掉了選中的 agent,App 會提示一次並退回預設。
+
+---
+
 ## 金鑰
 
 設定 → 金鑰:

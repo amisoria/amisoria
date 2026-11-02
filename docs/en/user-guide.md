@@ -98,6 +98,23 @@ Your OpenRouter balance shows here (other providers expose no balance API).
 
 ---
 
+## Agents (1.6)
+
+An **agent** is a character configured on your OpenClaw host: its own persona files, model and conversation history. Most hosts have just one (`main`), and the app uses it. If the host has more, **Settings → Gateway → Agent** lists them by name; pick one and the chat switches to that agent's own conversation (a "🎭 Switched agent" line marks the moment, and the status bar shows the agent's name while it is not the default one). The choice is remembered on the phone.
+
+A common reason to add one is a **voice-only agent**: a short persona, no tools, a fast model — first words come sooner than with an agent that carries a long workspace and a tool catalogue. On the host:
+
+```bash
+openclaw agents add voice --model openai/gpt-5.4-mini --workspace ~/.openclaw/workspace-voice --non-interactive
+openclaw agents set-identity --agent voice --name "Iris Voice" --emoji "🎙️"
+```
+
+The gateway picks it up without a restart; reconnect the app (or reopen Settings) and the new name appears. `openclaw agents add` seeds the workspace with OpenClaw's generic template files — copy your `AGENTS.md` / `SOUL.md` / `IDENTITY.md` (see [persona-prompt.md](persona-prompt.md)) into it, or the new agent will sound plain and know nothing about Iris.
+
+If the chosen agent is later removed on the host, the app says so once and goes back to the default.
+
+---
+
 ## Keys
 
 Settings → Keys:
