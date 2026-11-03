@@ -67,6 +67,29 @@ Amisoria 是一位**會說話、有表情、能用你的語言陪你聊天的 AI
 
 選擇會隨每次請求送出，App 不會改動主機自己的偏好。合成失敗時改由 iPhone 內建語音唸，對話裡會顯示 Gateway 給的原因，已知原因再加一行提示（Microsoft 端點更換、Microsoft 外掛未啟用、供應商沒金鑰）。iOS 內建語音沒有男聲中文，所以伺服器語音恢復前 Lucas 講中文是女聲，而且內建語音時角色的嘴不會動。
 
+### 本地語音實例：LFM3 Omni 接 OpenAI 相容的 relay（使用者提供）
+
+由 **maplepaladin73** 在 [issue #1](https://github.com/amisoria/amisoria/issues/1) 回報（Linux 主機、OpenClaw 2026.10.x、Amisoria 1.5–1.6）。Liquid 的 LFM3 Omni 很小，可以和已載入的模型並存；本地 relay 把它包成 OpenAI 相容的 `/v1/audio/speech` 端點，Gateway 的 `openai` 語音供應商直接指過去，App 選「**Gateway 預設**」：
+
+```json
+"tts": {
+  "provider": "openai",
+  "providers": {
+    "openai": {
+      "baseUrl": "http://127.0.0.1:5004/v1",
+      "model": "lfm3-omni",
+      "apiKey": "<relay 接受的任意值>",
+      "speakerVoice": "nova",
+      "responseFormat": "mp3"
+    }
+  }
+}
+```
+
+從 Gateway log 的 `tts.convert` 量到（約 30 句）：**每句中位數約 0.75 秒**，範圍 0.44–1.7 秒，多數落在 0.6–1.1 秒——和 Microsoft 雲端語音差不多，而且什麼都沒離開主機。relay 回 mp3，Gateway 照常寫成檔案，bridge 原樣提供，對嘴正常。
+
+注意 Amisoria **沒用到**的部分：同一個 relay 也能跑語音辨識（Whisper）給 OpenClaw 自己的 `talk.realtime` 用，但 App 是在 iPhone 上辨識你的話再送文字，所以這裡只有 TTS 那一段有關。
+
 ---
 
 ## 20 種語言

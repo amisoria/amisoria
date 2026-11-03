@@ -67,6 +67,29 @@ Settings → Voice → **Voice engine** (Amisoria 1.5 and later; 1.4.x offers Mi
 
 The choice is sent with every request; the app never changes the host's own preference. If synthesis fails, the reply is read by the iPhone's built-in voice and the chat shows the gateway's reason plus a hint when it is a known one (Microsoft endpoint moved, Microsoft plugin disabled, provider has no key). The built-in voice has no male Chinese option on iOS, so Lucas sounds female in Chinese until the server voice is back, and the character's lips don't move for built-in speech.
 
+### A local voice: LFM3 Omni behind an OpenAI-style relay (user recipe)
+
+Reported by **maplepaladin73** in [issue #1](https://github.com/amisoria/amisoria/issues/1) (Linux host, OpenClaw 2026.10.x, Amisoria 1.5–1.6). Liquid's LFM3 Omni is small enough to sit beside whatever model is already loaded, and a local relay exposes it as an OpenAI-compatible `/v1/audio/speech` endpoint. The gateway's `openai` TTS provider is simply pointed at that relay, and the app uses **Gateway default**:
+
+```json
+"tts": {
+  "provider": "openai",
+  "providers": {
+    "openai": {
+      "baseUrl": "http://127.0.0.1:5004/v1",
+      "model": "lfm3-omni",
+      "apiKey": "<any value the relay accepts>",
+      "speakerVoice": "nova",
+      "responseFormat": "mp3"
+    }
+  }
+}
+```
+
+Measured from the gateway's `tts.convert` lines (about 30 sentences): **median ≈ 0.75 s per sentence**, range 0.44–1.7 s, most between 0.6 and 1.1 s — comparable to Microsoft's cloud voice, with nothing leaving the host. The relay returns mp3, which the gateway writes to a file as usual; the bridge serves it unchanged and lip-sync works from it.
+
+Note what Amisoria does *not* use: the same relay can also run speech-to-text (Whisper) for OpenClaw's own `talk.realtime` loop, but the app recognizes your speech on the iPhone and sends text — only the TTS leg matters here.
+
 ---
 
 ## 20 languages
